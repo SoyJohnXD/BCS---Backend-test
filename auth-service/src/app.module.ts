@@ -1,57 +1,32 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
-import { AuthController } from './presentation/controllers/auth.controller';
-import { LoginUseCase } from './application/use-cases/login.use-case';
-import { IUserRepository } from './domain/repositories/user.repository';
-import { IPasswordHasher } from './application/ports/password-hasher.port';
-import { ITokenService } from './application/ports/token.port';
-
-import { UserSchema } from './infrastructure/persistence/entities/user.schema';
-import { SqlUserRepository } from './infrastructure/persistence/repositories/sql-user.repository';
-import { BcryptAdapter } from './infrastructure/services/bcrypt.adapter';
-import { JwtAdapter } from './infrastructure/services/jwt.adapter';
-import { SeederService } from './infrastructure/seeding/seeder.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '@/presentation/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserSchema]),
-
-    JwtModule.registerAsync({
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'aVeryWeakSecret'),
-        signOptions: {
-          expiresIn: '5m',
-        },
+        type: 'postgres',
+        host: configService.get<string>('DATABASE_HOST'),
+        port: configService.get<number>('DATABASE_PORT'),
+        username: configService.get<string>('DATABASE_USER'),
+        password: configService.get<string>('DATABASE_PASSWORD'),
+        database: configService.get<string>('DATABASE_NAME'),
+        autoLoadEntities: true,
+        synchronize: true, // TODO: remover al finalizar (solo para dev)
       }),
     }),
+
+    AuthModule,
   ],
-  controllers: [AuthController],
-  providers: [
-    LoginUseCase,
-
-    BcryptAdapter,
-    JwtAdapter,
-    SqlUserRepository,
-
-    {
-      provide: IUserRepository,
-      useClass: SqlUserRepository,
-    },
-    {
-      provide: IPasswordHasher,
-      useClass: BcryptAdapter,
-    },
-    {
-      provide: ITokenService,
-      useClass: JwtAdapter,
-    },
-
-    SeederService,
-  ],
+  controllers: [],
+  providers: [],
 })
-export class AuthModule {}
+export class AppModule {}
