@@ -18,7 +18,7 @@ describe('User Entity', () => {
 
   it('should throw an error if email is invalid', () => {
     const invalidProps = {
-      email: 'invalid-email', // Sin @
+      email: 'invalid-email',
       passwordHash: 'hashed-password',
     };
 

@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { OnboardingModule } from '@/presentation/onboarding.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ProductModule } from '@/presentation/product.module';
+import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
     }),
 
     TypeOrmModule.forRootAsync({
@@ -21,11 +22,22 @@ import { OnboardingModule } from '@/presentation/onboarding.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         autoLoadEntities: true,
-        synchronize: true, // TODO: true solo para desarrollo
+        synchronize: true, // true solo para desarrollo
       }),
     }),
 
-    OnboardingModule,
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          url: `redis://redis-cache:6379`,
+        }),
+      }),
+    }),
+
+    ProductModule,
   ],
   controllers: [],
   providers: [],
