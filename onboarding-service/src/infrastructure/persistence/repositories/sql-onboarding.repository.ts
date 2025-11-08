@@ -3,14 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IOnboardingRepository } from '@/domain/repositories/onboarding.repository';
 import { OnboardingRequest } from '@/domain/entities/onboarding-request.entity';
-import { OnboardingRequestSchema } from '../entities/onboarding-request.schema';
+import {
+  OnboardingRequestOrmEntity,
+  OnboardingRequestSchema,
+} from '../entities/onboarding-request.schema';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 
 @Injectable()
 export class SqlOnboardingRepository implements IOnboardingRepository {
   constructor(
     @InjectRepository(OnboardingRequestSchema)
-    private readonly typeOrmRepo: Repository<OnboardingRequestSchema>,
+    private readonly typeOrmRepo: Repository<OnboardingRequestOrmEntity>,
   ) {}
 
   async save(request: OnboardingRequest): Promise<void> {

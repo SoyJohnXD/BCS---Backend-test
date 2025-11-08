@@ -1,30 +1,64 @@
-import { Entity, Column, CreateDateColumn, PrimaryColumn } from 'typeorm';
+import { EntitySchema } from 'typeorm';
 import { OnboardingStatus } from '@/domain/value-objects/onboarding-status.vo';
+import { PiiTransformer } from '@/infrastructure/transformers/pii.transformer';
 
-@Entity('onboarding_requests')
-export class OnboardingRequestSchema {
-  @PrimaryColumn('uuid')
+export interface OnboardingRequestOrmEntity {
   id: string;
-
-  @Column()
   name: string;
-
-  @Column({ unique: true })
   documentNumber: string;
-
-  @Column()
   email: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'monto_inicial' })
-  initialAmount: number;
-
-  @Column({
-    type: 'enum',
-    enum: OnboardingStatus,
-    default: OnboardingStatus.REQUESTED,
-  })
+  initialAmount: string;
   status: OnboardingStatus;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
+  updatedAt: Date;
 }
+
+export const OnboardingRequestSchema =
+  new EntitySchema<OnboardingRequestOrmEntity>({
+    name: 'OnboardingRequest',
+    tableName: 'onboarding_requests',
+    columns: {
+      id: {
+        type: 'uuid',
+        primary: true,
+      },
+      name: {
+        type: 'varchar',
+        nullable: false,
+        transformer: new PiiTransformer(),
+      },
+      documentNumber: {
+        type: 'varchar',
+        name: 'document_number',
+        nullable: false,
+        transformer: new PiiTransformer(),
+      },
+      email: {
+        type: 'varchar',
+        nullable: false,
+        transformer: new PiiTransformer(),
+      },
+      initialAmount: {
+        type: 'decimal',
+        name: 'initial_amount',
+        precision: 10,
+        scale: 2,
+        nullable: false,
+      },
+      status: {
+        type: 'enum',
+        enum: OnboardingStatus,
+        nullable: false,
+      },
+      createdAt: {
+        type: 'timestamp',
+        name: 'created_at',
+        createDate: true,
+      },
+      updatedAt: {
+        type: 'timestamp',
+        name: 'updated_at',
+        updateDate: true,
+      },
+    },
+  });

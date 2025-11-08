@@ -2,10 +2,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { SqlOnboardingRepository } from './sql-onboarding.repository';
-import { OnboardingRequestSchema } from '../entities/onboarding-request.schema';
+import {
+  OnboardingRequestOrmEntity,
+  OnboardingRequestSchema,
+} from '../entities/onboarding-request.schema';
 import { OnboardingRequest } from '@/domain/entities/onboarding-request.entity';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 import { OnboardingStatus } from '@/domain/value-objects/onboarding-status.vo';
+
+jest.mock('@/infrastructure/services/encryption.service', () => ({
+  EncryptionService: jest.fn().mockImplementation(() => ({
+    encrypt: jest.fn(),
+    decrypt: jest.fn(),
+  })),
+}));
 
 type MockRepository<TEntity extends ObjectLiteral = ObjectLiteral> = Partial<
   Record<keyof Repository<TEntity>, jest.Mock>
@@ -22,14 +32,15 @@ const createMockRepository = <
 
 const mockTimestamp = new Date('2024-01-01T00:00:00.000Z');
 
-const mockSchema: OnboardingRequestSchema = {
+const mockSchema: OnboardingRequestOrmEntity = {
   id: 'a-valid-uuid',
   name: 'Test Client',
   documentNumber: '123456',
   email: 'test@bank.com',
-  initialAmount: 100,
+  initialAmount: '100',
   status: OnboardingStatus.REQUESTED,
   createdAt: mockTimestamp,
+  updatedAt: mockTimestamp,
 };
 
 const mockDomain = OnboardingRequest.fromPrimitives({
@@ -37,7 +48,7 @@ const mockDomain = OnboardingRequest.fromPrimitives({
   name: mockSchema.name,
   documentNumber: mockSchema.documentNumber,
   email: mockSchema.email,
-  initialAmount: mockSchema.initialAmount,
+  initialAmount: Number(mockSchema.initialAmount),
   status: mockSchema.status,
   createdAt: mockTimestamp,
   updatedAt: mockTimestamp,
@@ -45,7 +56,7 @@ const mockDomain = OnboardingRequest.fromPrimitives({
 
 describe('SqlOnboardingRepository', () => {
   let repository: SqlOnboardingRepository;
-  let typeOrmRepo: Required<MockRepository<OnboardingRequestSchema>>;
+  let typeOrmRepo: Required<MockRepository<OnboardingRequestOrmEntity>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -59,9 +70,9 @@ describe('SqlOnboardingRepository', () => {
     }).compile();
 
     repository = module.get<SqlOnboardingRepository>(SqlOnboardingRepository);
-    typeOrmRepo = module.get<MockRepository<OnboardingRequestSchema>>(
+    typeOrmRepo = module.get<MockRepository<OnboardingRequestOrmEntity>>(
       getRepositoryToken(OnboardingRequestSchema),
-    ) as Required<MockRepository<OnboardingRequestSchema>>;
+    ) as Required<MockRepository<OnboardingRequestOrmEntity>>;
   });
 
   it('should be defined', () => {
