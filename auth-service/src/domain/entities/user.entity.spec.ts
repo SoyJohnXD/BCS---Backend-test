@@ -31,7 +31,7 @@ describe('User Entity', () => {
     const invalidProps = {
       email: null,
       passwordHash: 'hashed-password',
-    };
+    } as unknown as Parameters<typeof User.create>[0];
 
     expect(() => User.create(invalidProps)).toThrow(
       'El email del usuario no es válido',

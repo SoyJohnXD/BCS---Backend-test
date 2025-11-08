@@ -1,22 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ObjectLiteral, Repository } from 'typeorm';
 import { SqlProductRepository } from './sql-product.repository';
 import { ProductSchema } from '../entities/product.schema';
 import { Product } from '@/domain/entities/product.entity';
 import { ProductMapper } from '../mappers/product.mapper';
 
-type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = (): MockRepository<ProductSchema> => ({
-  findOne: jest.fn(),
-  find: jest.fn(),
-  save: jest.fn(),
-});
+type MockRepository<TEntity extends ObjectLiteral = ObjectLiteral> = Partial<
+  Record<keyof Repository<TEntity>, jest.Mock>
+>;
+
+const createMockRepository = <
+  TEntity extends ObjectLiteral,
+>(): MockRepository<TEntity> => {
+  return {
+    findOne: jest.fn(),
+    find: jest.fn(),
+    save: jest.fn(),
+  } as MockRepository<TEntity>;
+};
 
 const mockSchema: ProductSchema = {
   id: 'a-valid-uuid',
-  nombre: 'Cuenta de Ahorros',
-  descripcion: 'Descripción completa',
+  name: 'Cuenta de Ahorros',
+  description: 'Descripción completa',
   tasaInteres: 1.5,
   terminosCondiciones: 'Términos completos',
   requisitosElegibilidad: 'Requisitos completos',
@@ -27,7 +34,7 @@ const mockDomain = Product.fromPrimitives(mockSchema);
 
 describe('SqlProductRepository', () => {
   let repository: SqlProductRepository;
-  let typeOrmRepo: MockRepository<ProductSchema>;
+  let typeOrmRepo: Required<MockRepository<ProductSchema>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,7 +50,7 @@ describe('SqlProductRepository', () => {
     repository = module.get<SqlProductRepository>(SqlProductRepository);
     typeOrmRepo = module.get<MockRepository<ProductSchema>>(
       getRepositoryToken(ProductSchema),
-    );
+    ) as Required<MockRepository<ProductSchema>>;
   });
 
   describe('findById', () => {
@@ -56,6 +63,9 @@ describe('SqlProductRepository', () => {
         where: { id: 'a-valid-uuid' },
       });
       expect(result).toBeInstanceOf(Product);
+      if (!result) {
+        throw new Error('Expected product to be returned');
+      }
       expect(result.id).toBe(mockSchema.id);
       expect(result.tasaInteres).toBe(1.5);
     });

@@ -11,7 +11,7 @@ export class OnboardingMapper {
       initialAmount: Number(schema.initialAmount),
       status: schema.status,
       createdAt: schema.createdAt,
-      updatedAt: schema.createdAt, // schema lacks updatedAt column; reuse createdAt
+      updatedAt: schema.createdAt,
     });
   }
 

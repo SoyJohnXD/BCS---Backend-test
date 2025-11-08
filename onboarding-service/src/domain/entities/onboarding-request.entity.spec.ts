@@ -60,7 +60,7 @@ describe('OnboardingRequest Entity', () => {
       initialAmount: request.initialAmount,
       status: OnboardingStatus.REQUESTED,
       createdAt: request.createdAt,
-      updatedAt: primitives.updatedAt, // updatedAt included
+      updatedAt: primitives.updatedAt,
     });
   });
 });

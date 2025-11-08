@@ -1,16 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ObjectLiteral, Repository } from 'typeorm';
 import { SqlUserRepository } from './sql-user.repository';
 import { UserSchema } from '../entities/user.schema';
 import { User } from '@/domain/entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
 
-type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = (): MockRepository<UserSchema> => ({
-  findOne: jest.fn(),
-  save: jest.fn(),
-});
+type MockRepository<TEntity extends ObjectLiteral = ObjectLiteral> = Partial<
+  Record<keyof Repository<TEntity>, jest.Mock>
+>;
+
+const createMockRepository = <
+  TEntity extends ObjectLiteral,
+>(): MockRepository<TEntity> => {
+  return {
+    findOne: jest.fn(),
+    save: jest.fn(),
+  } as MockRepository<TEntity>;
+};
 
 const mockUserSchema: UserSchema = {
   id: 'a-valid-uuid',

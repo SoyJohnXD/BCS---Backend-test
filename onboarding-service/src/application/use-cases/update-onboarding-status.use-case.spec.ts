@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateOnboardingStatusUseCase } from './update-onboarding-status.use-case';
 import { IOnboardingRepository } from '@/domain/repositories/onboarding.repository';
@@ -26,9 +27,22 @@ const mockOnboardingRequest = {
 
 describe('UpdateOnboardingStatusUseCase', () => {
   let useCase: UpdateOnboardingStatusUseCase;
+  let loggerErrorSpy: jest.SpyInstance;
+  let loggerWarnSpy: jest.SpyInstance;
+  let loggerLogSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    loggerWarnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+    loggerLogSpy = jest
+      .spyOn(Logger.prototype, 'log')
+      .mockImplementation(() => undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -51,6 +65,12 @@ describe('UpdateOnboardingStatusUseCase', () => {
     mockOnboardingRepository.findById.mockResolvedValue(
       mockOnboardingRequest as unknown as OnboardingRequest,
     );
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
+    loggerWarnSpy.mockRestore();
+    loggerLogSpy.mockRestore();
   });
 
   it('should be defined', () => {
@@ -82,6 +102,9 @@ describe('UpdateOnboardingStatusUseCase', () => {
       'Test User',
       OnboardingStatus.APPROVED,
     );
+    expect(loggerLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Status updated to'),
+    );
   });
 
   it('should throw OnboardingRequestNotFoundException if request is not found', async () => {
@@ -101,6 +124,9 @@ describe('UpdateOnboardingStatusUseCase', () => {
 
     expect(mockOnboardingRepository.update).not.toHaveBeenCalled();
     expect(mockNotificationPort.sendOnboardingResult).not.toHaveBeenCalled();
+    expect(loggerWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Onboarding request not found'),
+    );
   });
 
   it('should throw if entity domain logic throws (e.g., already finalized)', async () => {
@@ -128,6 +154,7 @@ describe('UpdateOnboardingStatusUseCase', () => {
 
     expect(mockOnboardingRepository.update).not.toHaveBeenCalled();
     expect(mockNotificationPort.sendOnboardingResult).not.toHaveBeenCalled();
+    expect(loggerErrorSpy).not.toHaveBeenCalled();
   });
 
   it('should not throw if notification fails (graceful handling)', async () => {
@@ -153,5 +180,8 @@ describe('UpdateOnboardingStatusUseCase', () => {
     );
 
     expect(mockNotificationPort.sendOnboardingResult).toHaveBeenCalled();
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to send notification'),
+    );
   });
 });

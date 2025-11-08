@@ -28,4 +28,9 @@ export class SqlOnboardingRepository implements IOnboardingRepository {
 
     return OnboardingMapper.toDomain(schema);
   }
+
+  async update(request: OnboardingRequest): Promise<void> {
+    const schema = OnboardingMapper.toPersistence(request);
+    await this.typeOrmRepo.save(schema);
+  }
 }

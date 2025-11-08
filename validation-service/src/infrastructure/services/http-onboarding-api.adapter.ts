@@ -13,9 +13,13 @@ export class HttpOnboardingApiAdapter implements IOnboardingApiPort {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.onboardingServiceUrl = this.configService.get<string>(
-      'ONBOARDING_SERVICE_URL',
-    );
+    const serviceUrl = this.configService.get<string>('ONBOARDING_SERVICE_URL');
+
+    if (!serviceUrl) {
+      throw new Error('ONBOARDING_SERVICE_URL is not configured');
+    }
+
+    this.onboardingServiceUrl = serviceUrl;
   }
 
   async notifyStatus(onboardingId: string, status: string): Promise<void> {
@@ -28,9 +32,12 @@ export class HttpOnboardingApiAdapter implements IOnboardingApiPort {
     try {
       await firstValueFrom(this.httpService.patch(url, payload));
     } catch (error) {
-      this.logger.error(`Error al enviar callback a ${url}: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error al enviar callback a ${url}: ${message}`);
 
-      throw new Error(`Fallo en la comunicación con el servicio de onboarding`);
+      throw new Error(
+        `Fallo en la comunicación con el servicio de onboarding: ${message}`,
+      );
     }
   }
 }

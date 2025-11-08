@@ -1,35 +1,55 @@
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateOnboardingUseCase } from './create-onboarding.use-case';
 import { IOnboardingRepository } from '@/domain/repositories/onboarding.repository';
 import { IValidationApiPort } from '@/application/ports/validation-api.port';
 import { OnboardingStatus } from '@/domain/value-objects/onboarding-status.vo';
 
-// --- Mocks ---
-const mockOnboardingRepository = {
-  save: jest.fn(),
-};
+const createOnboardingRepositoryMock =
+  (): jest.Mocked<IOnboardingRepository> => {
+    return {
+      save: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+    } as jest.Mocked<IOnboardingRepository>;
+  };
 
-const mockValidationApiPort = {
-  requestValidation: jest.fn(),
+const createValidationApiMock = (): jest.Mocked<IValidationApiPort> => {
+  return {
+    requestValidation: jest.fn(),
+  } as jest.Mocked<IValidationApiPort>;
 };
-// --- Fin Mocks ---
 
 describe('CreateOnboardingUseCase', () => {
   let useCase: CreateOnboardingUseCase;
+  let onboardingRepositoryMock: jest.Mocked<IOnboardingRepository>;
+  let validationApiMock: jest.Mocked<IValidationApiPort>;
+  let loggerErrorSpy: jest.SpyInstance;
+  let loggerLogSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    loggerLogSpy = jest
+      .spyOn(Logger.prototype, 'log')
+      .mockImplementation(() => undefined);
+
+    onboardingRepositoryMock = createOnboardingRepositoryMock();
+    validationApiMock = createValidationApiMock();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateOnboardingUseCase,
         {
           provide: IOnboardingRepository,
-          useValue: mockOnboardingRepository,
+          useValue: onboardingRepositoryMock,
         },
         {
           provide: IValidationApiPort,
-          useValue: mockValidationApiPort,
+          useValue: validationApiMock,
         },
       ],
     }).compile();
@@ -37,12 +57,16 @@ describe('CreateOnboardingUseCase', () => {
     useCase = module.get<CreateOnboardingUseCase>(CreateOnboardingUseCase);
   });
 
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
+    loggerLogSpy.mockRestore();
+  });
+
   it('should be defined', () => {
     expect(useCase).toBeDefined();
   });
 
   it('should create, save, and request validation', async () => {
-    // 1. Arrange
     const dto = {
       name: 'Test Client',
       documentNumber: '123456789',
@@ -50,25 +74,28 @@ describe('CreateOnboardingUseCase', () => {
       initialAmount: 100,
     };
 
-    mockOnboardingRepository.save.mockResolvedValue(undefined);
-    mockValidationApiPort.requestValidation.mockResolvedValue(undefined);
+    onboardingRepositoryMock.save.mockResolvedValue(undefined);
+    validationApiMock.requestValidation.mockResolvedValue(undefined);
 
-    // 2. Act
     const result = await useCase.execute(dto);
 
-    // 3. Assert
-    expect(mockOnboardingRepository.save).toHaveBeenCalledTimes(1);
-    const savedRequest = mockOnboardingRepository.save.mock.calls[0][0];
+    expect(onboardingRepositoryMock.save.mock.calls).toHaveLength(1);
+    const savedRequest = onboardingRepositoryMock.save.mock.calls[0]?.[0];
+    if (!savedRequest) {
+      throw new Error('Expected onboarding request to be persisted');
+    }
     expect(savedRequest.name).toBe(dto.name);
     expect(result.status).toBe(OnboardingStatus.REQUESTED);
-    expect(mockValidationApiPort.requestValidation).toHaveBeenCalledTimes(1);
-    expect(mockValidationApiPort.requestValidation).toHaveBeenCalledWith(
+    expect(validationApiMock.requestValidation.mock.calls).toHaveLength(1);
+    expect(validationApiMock.requestValidation.mock.calls[0]).toEqual([
       savedRequest.id,
+    ]);
+    expect(loggerLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Requesting validation for'),
     );
   });
 
   it('should still succeed if validation request fails (fire-and-forget)', async () => {
-    // 1. Arrange
     const dto = {
       name: 'Client Without Validation',
       documentNumber: '987654321',
@@ -76,23 +103,23 @@ describe('CreateOnboardingUseCase', () => {
       initialAmount: 50,
     };
 
-    mockOnboardingRepository.save.mockResolvedValue(undefined);
+    onboardingRepositoryMock.save.mockResolvedValue(undefined);
     const validationError = new Error('Validation service down');
-    mockValidationApiPort.requestValidation.mockRejectedValue(validationError);
+    validationApiMock.requestValidation.mockRejectedValue(validationError);
 
-    // 2. Act
     const result = await useCase.execute(dto);
 
-    // --- CORRECCIÓN ---
-    // Le damos al event loop la oportunidad de ejecutar el .catch()
-    // del caso de uso antes de que termine la prueba.
     await new Promise((resolve) => setImmediate(resolve));
-    // --- FIN CORRECCIÓN ---
 
-    // 3. Assert
-    expect(mockOnboardingRepository.save).toHaveBeenCalledTimes(1);
-    const savedRequest = mockOnboardingRepository.save.mock.calls[0][0];
+    expect(onboardingRepositoryMock.save.mock.calls).toHaveLength(1);
+    const savedRequest = onboardingRepositoryMock.save.mock.calls[0]?.[0];
+    if (!savedRequest) {
+      throw new Error('Expected onboarding request to be persisted');
+    }
     expect(result.onboardingId).toBe(savedRequest.id);
-    expect(mockValidationApiPort.requestValidation).toHaveBeenCalledTimes(1);
+    expect(validationApiMock.requestValidation.mock.calls).toHaveLength(1);
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to request validation'),
+    );
   });
 });

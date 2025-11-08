@@ -1,17 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ObjectLiteral, Repository } from 'typeorm';
 import { SqlOnboardingRepository } from './sql-onboarding.repository';
 import { OnboardingRequestSchema } from '../entities/onboarding-request.schema';
 import { OnboardingRequest } from '@/domain/entities/onboarding-request.entity';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 import { OnboardingStatus } from '@/domain/value-objects/onboarding-status.vo';
 
-type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = (): MockRepository<OnboardingRequestSchema> => ({
-  findOne: jest.fn(),
-  save: jest.fn(),
-});
+type MockRepository<TEntity extends ObjectLiteral = ObjectLiteral> = Partial<
+  Record<keyof Repository<TEntity>, jest.Mock>
+>;
+
+const createMockRepository = <
+  TEntity extends ObjectLiteral,
+>(): MockRepository<TEntity> => {
+  return {
+    findOne: jest.fn(),
+    save: jest.fn(),
+  } as MockRepository<TEntity>;
+};
+
+const mockTimestamp = new Date('2024-01-01T00:00:00.000Z');
 
 const mockSchema: OnboardingRequestSchema = {
   id: 'a-valid-uuid',
@@ -20,14 +29,23 @@ const mockSchema: OnboardingRequestSchema = {
   email: 'test@bank.com',
   initialAmount: 100,
   status: OnboardingStatus.REQUESTED,
-  createdAt: new Date(),
+  createdAt: mockTimestamp,
 };
 
-const mockDomain = OnboardingRequest.fromPrimitives(mockSchema);
+const mockDomain = OnboardingRequest.fromPrimitives({
+  id: mockSchema.id,
+  name: mockSchema.name,
+  documentNumber: mockSchema.documentNumber,
+  email: mockSchema.email,
+  initialAmount: mockSchema.initialAmount,
+  status: mockSchema.status,
+  createdAt: mockTimestamp,
+  updatedAt: mockTimestamp,
+});
 
 describe('SqlOnboardingRepository', () => {
   let repository: SqlOnboardingRepository;
-  let typeOrmRepo: MockRepository<OnboardingRequestSchema>;
+  let typeOrmRepo: Required<MockRepository<OnboardingRequestSchema>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,7 +61,7 @@ describe('SqlOnboardingRepository', () => {
     repository = module.get<SqlOnboardingRepository>(SqlOnboardingRepository);
     typeOrmRepo = module.get<MockRepository<OnboardingRequestSchema>>(
       getRepositoryToken(OnboardingRequestSchema),
-    );
+    ) as Required<MockRepository<OnboardingRequestSchema>>;
   });
 
   it('should be defined', () => {
@@ -60,6 +78,9 @@ describe('SqlOnboardingRepository', () => {
         where: { id: 'a-valid-uuid' },
       });
       expect(result).toBeInstanceOf(OnboardingRequest);
+      if (!result) {
+        throw new Error('Expected onboarding request to be returned');
+      }
       expect(result.id).toBe(mockSchema.id);
     });
 
@@ -84,6 +105,21 @@ describe('SqlOnboardingRepository', () => {
           id: mockDomain.id,
           email: mockDomain.email,
         }),
+      );
+
+      toPersistenceSpy.mockRestore();
+    });
+  });
+
+  describe('update', () => {
+    it('should map and persist changes', async () => {
+      const toPersistenceSpy = jest.spyOn(OnboardingMapper, 'toPersistence');
+
+      await repository.update(mockDomain);
+
+      expect(toPersistenceSpy).toHaveBeenCalledWith(mockDomain);
+      expect(typeOrmRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: mockDomain.id }),
       );
 
       toPersistenceSpy.mockRestore();

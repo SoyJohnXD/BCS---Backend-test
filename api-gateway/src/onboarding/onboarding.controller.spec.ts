@@ -3,23 +3,24 @@ import { OnboardingController } from './onboarding.controller';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { of, throwError } from 'rxjs';
-import { AxiosError, AxiosResponse } from 'axios';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { AxiosError, type AxiosResponse } from 'axios';
+import { HttpStatus } from '@nestjs/common';
 
-const mockHttpService = {
+type HttpServiceMock = Pick<jest.Mocked<HttpService>, 'request'>;
+
+const createHttpServiceMock = (): HttpServiceMock => ({
   request: jest.fn(),
-};
+});
 
-const mockConfigService = {
-  get: jest.fn((key: string) => {
-    if (key === 'ONBOARDING_SERVICE_URL') {
-      return 'http://fake-onboarding-service:3000';
-    }
-    return null;
-  }),
-};
+const createConfigServiceMock = (
+  serviceUrl = 'http://fake-onboarding-service:3000',
+) => ({
+  get: jest.fn((key: string) =>
+    key === 'ONBOARDING_SERVICE_URL' ? serviceUrl : undefined,
+  ),
+});
 
 const mockAuthGuard = {
   canActivate: jest.fn(() => true),
@@ -27,16 +28,20 @@ const mockAuthGuard = {
 
 describe('OnboardingController', () => {
   let controller: OnboardingController;
-  let httpService: HttpService;
+  let httpServiceMock: HttpServiceMock;
+  let configServiceMock: ReturnType<typeof createConfigServiceMock>;
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    httpServiceMock = createHttpServiceMock();
+    configServiceMock = createConfigServiceMock();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OnboardingController],
       providers: [
-        { provide: HttpService, useValue: mockHttpService },
-        { provide: ConfigService, useValue: mockConfigService },
+        { provide: HttpService, useValue: httpServiceMock },
+        { provide: ConfigService, useValue: configServiceMock },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -44,7 +49,6 @@ describe('OnboardingController', () => {
       .compile();
 
     controller = module.get<OnboardingController>(OnboardingController);
-    httpService = module.get<HttpService>(HttpService);
   });
 
   it('should be defined', () => {
@@ -59,20 +63,20 @@ describe('OnboardingController', () => {
     const mockBody = { name: 'test' };
     const mockResponseData = { id: '123', status: 'REQUESTED' };
 
-    mockHttpService.request.mockReturnValue(
+    httpServiceMock.request.mockReturnValue(
       of({
         data: mockResponseData,
         status: 201,
-      } as AxiosResponse),
+      } as AxiosResponse<typeof mockResponseData>),
     );
 
     const result = await controller.proxyOnboarding(mockBody, mockRequest);
 
     expect(result).toEqual(mockResponseData);
 
-    expect(httpService.request).toHaveBeenCalledTimes(1);
-    expect(httpService.request).toHaveBeenCalledWith({
-      method: 'POST',
+    expect(httpServiceMock.request).toHaveBeenCalledTimes(1);
+    expect(httpServiceMock.request).toHaveBeenCalledWith({
+      method: 'post',
       url: 'http://fake-onboarding-service:3000/test-path',
       data: mockBody,
     });
@@ -93,19 +97,15 @@ describe('OnboardingController', () => {
     axiosError.response = {
       data: mockErrorResponse,
       status: 400,
-    } as AxiosResponse;
+    } as AxiosResponse<typeof mockErrorResponse>;
 
-    mockHttpService.request.mockReturnValue(throwError(() => axiosError));
+    httpServiceMock.request.mockReturnValue(throwError(() => axiosError));
 
     await expect(
       controller.proxyOnboarding(mockBody, mockRequest),
-    ).rejects.toThrow(HttpException);
-
-    try {
-      await controller.proxyOnboarding(mockBody, mockRequest);
-    } catch (error) {
-      expect(error.status).toBe(HttpStatus.BAD_REQUEST);
-      expect(error.response).toEqual(mockErrorResponse);
-    }
+    ).rejects.toMatchObject({
+      response: mockErrorResponse,
+      status: HttpStatus.BAD_REQUEST,
+    });
   });
 });

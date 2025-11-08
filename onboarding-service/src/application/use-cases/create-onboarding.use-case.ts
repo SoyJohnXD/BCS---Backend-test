@@ -5,7 +5,7 @@ import {
   CreateOnboardingUseCaseDto,
   CreateOnboardingUseCaseResultDto,
 } from '../dto/create-onboarding.dto';
-import { IValidationApiPort } from '../ports/validation-api.port'; // <-- 1. Importar
+import { IValidationApiPort } from '../ports/validation-api.port';
 
 @Injectable()
 export class CreateOnboardingUseCase {

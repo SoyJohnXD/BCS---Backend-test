@@ -32,7 +32,9 @@ import { redisStore } from 'cache-manager-redis-store';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         store: await redisStore({
-          url: `redis://redis-cache:6379`,
+          url:
+            configService.get<string>('REDIS_URL') ??
+            'redis://redis-cache:6379',
         }),
       }),
     }),

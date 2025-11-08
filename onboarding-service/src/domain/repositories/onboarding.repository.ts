@@ -15,4 +15,10 @@ export interface IOnboardingRepository {
    * @returns La entidad o null si no se encuentra.
    */
   findById(id: string): Promise<OnboardingRequest | null>;
+
+  /**
+   * Actualiza el estado de una solicitud existente.
+   * @param request La entidad actualizada.
+   */
+  update(request: OnboardingRequest): Promise<void>;
 }

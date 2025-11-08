@@ -8,4 +8,8 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
-bootstrap();
+bootstrap().catch((error) => {
+  // Registro explícito del fallo de arranque para facilitar debugging
+  console.error('Bootstrap failed', error);
+  process.exit(1);
+});

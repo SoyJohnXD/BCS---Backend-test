@@ -9,7 +9,6 @@ const mockSimulateValidationUseCase = {
 
 describe('ValidationController', () => {
   let controller: ValidationController;
-  let useCase: SimulateValidationUseCase;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -25,7 +24,6 @@ describe('ValidationController', () => {
     }).compile();
 
     controller = module.get<ValidationController>(ValidationController);
-    useCase = module.get<SimulateValidationUseCase>(SimulateValidationUseCase);
   });
 
   it('should be defined', () => {
@@ -37,8 +35,8 @@ describe('ValidationController', () => {
 
     const result = controller.startValidation(dto);
 
-    expect(useCase.execute).toHaveBeenCalledTimes(1);
-    expect(useCase.execute).toHaveBeenCalledWith(dto);
+    expect(mockSimulateValidationUseCase.execute.mock.calls).toHaveLength(1);
+    expect(mockSimulateValidationUseCase.execute.mock.calls[0]).toEqual([dto]);
 
     expect(result).toEqual({
       message: 'Validation request received and is being processed.',

@@ -10,7 +10,6 @@ const mockUpdateOnboardingStatusUseCase = {
 
 describe('InternalController', () => {
   let controller: InternalController;
-  let useCase: UpdateOnboardingStatusUseCase;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -26,9 +25,6 @@ describe('InternalController', () => {
     }).compile();
 
     controller = module.get<InternalController>(InternalController);
-    useCase = module.get<UpdateOnboardingStatusUseCase>(
-      UpdateOnboardingStatusUseCase,
-    );
   });
 
   it('should be defined', () => {
@@ -45,12 +41,13 @@ describe('InternalController', () => {
 
     await controller.updateOnboardingStatus(paramId, bodyDto);
 
-    expect(useCase.execute).toHaveBeenCalledTimes(1);
-
-    expect(useCase.execute).toHaveBeenCalledWith({
-      id: paramId,
-      status: bodyDto.status,
-    });
+    expect(mockUpdateOnboardingStatusUseCase.execute.mock.calls.length).toBe(1);
+    expect(mockUpdateOnboardingStatusUseCase.execute.mock.calls[0]).toEqual([
+      {
+        id: paramId,
+        status: bodyDto.status,
+      },
+    ]);
   });
 
   it('should propagate exceptions from the use case', async () => {

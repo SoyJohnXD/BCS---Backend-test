@@ -26,16 +26,18 @@ export class UpdateOnboardingStatusUseCase {
       throw new OnboardingRequestNotFoundException(dto.id);
     }
 
-    onboardingRequest.updateStatus(dto.status);
+    const updatableRequest = onboardingRequest;
 
-    await this.onboardingRepository.update(onboardingRequest);
+    updatableRequest.updateStatus(dto.status);
+
+    await this.onboardingRepository.update(updatableRequest);
 
     this.logger.log(`Status updated to ${dto.status} for ID: ${dto.id}`);
 
     try {
       await this.notificationPort.sendOnboardingResult(
-        onboardingRequest.email,
-        onboardingRequest.name,
+        updatableRequest.email,
+        updatableRequest.name,
         dto.status,
       );
     } catch (error) {

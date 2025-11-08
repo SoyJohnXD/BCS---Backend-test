@@ -16,15 +16,16 @@ const mockCacheService = {
   set: jest.fn(),
 };
 
-const mockProduct = Product.create({
+const mockId = 'a-valid-uuid';
+const mockProduct = Product.fromPrimitives({
+  id: mockId,
   name: 'Cuenta de Ahorros',
   description: 'Descripción completa',
   tasaInteres: 1.5,
   terminosCondiciones: 'Términos completos',
   requisitosElegibilidad: 'Requisitos completos',
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
 });
-const mockId = 'a-valid-uuid';
-(mockProduct as any)._id = mockId;
 
 const expectedDto: ProductDto = {
   id: mockId,

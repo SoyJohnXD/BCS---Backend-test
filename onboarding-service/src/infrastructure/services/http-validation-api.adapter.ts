@@ -13,9 +13,13 @@ export class HttpValidationApiAdapter implements IValidationApiPort {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.validationServiceUrl = this.configService.get<string>(
-      'VALIDATION_SERVICE_URL',
-    );
+    const serviceUrl = this.configService.get<string>('VALIDATION_SERVICE_URL');
+
+    if (!serviceUrl) {
+      throw new Error('VALIDATION_SERVICE_URL is not configured');
+    }
+
+    this.validationServiceUrl = serviceUrl;
   }
 
   async requestValidation(onboardingId: string): Promise<void> {
@@ -33,11 +37,12 @@ export class HttpValidationApiAdapter implements IValidationApiPort {
         `Solicitud de validación aceptada para: ${onboardingId}, Status: ${response.status}`,
       );
     } catch (error) {
-      this.logger.error(
-        `Error al solicitar validación a ${url}: ${error.message}`,
-      );
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error al solicitar validación a ${url}: ${message}`);
 
-      throw new Error(`Fallo en la comunicación con el servicio de validación`);
+      throw new Error(
+        `Fallo en la comunicación con el servicio de validación: ${message}`,
+      );
     }
   }
 }

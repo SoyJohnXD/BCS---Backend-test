@@ -9,7 +9,6 @@ const mockLoginUseCase = {
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let useCase: LoginUseCase;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +22,6 @@ describe('AuthController', () => {
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
-    useCase = module.get<LoginUseCase>(LoginUseCase);
     jest.clearAllMocks();
   });
 
@@ -42,7 +40,7 @@ describe('AuthController', () => {
 
       const result = await controller.login(loginDto);
 
-      expect(useCase.execute).toHaveBeenCalledWith(loginDto);
+      expect(mockLoginUseCase.execute).toHaveBeenCalledWith(loginDto);
       expect(result).toBe(expectedResult);
     });
   });
