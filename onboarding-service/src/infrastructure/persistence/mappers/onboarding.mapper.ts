@@ -5,12 +5,13 @@ export class OnboardingMapper {
   static toDomain(schema: OnboardingRequestSchema): OnboardingRequest {
     return OnboardingRequest.fromPrimitives({
       id: schema.id,
-      nombre: schema.nombre,
-      documento: schema.documento,
+      name: schema.name,
+      documentNumber: schema.documentNumber,
       email: schema.email,
-      montoInicial: Number(schema.montoInicial),
+      initialAmount: Number(schema.initialAmount),
       status: schema.status,
       createdAt: schema.createdAt,
+      updatedAt: schema.createdAt, // schema lacks updatedAt column; reuse createdAt
     });
   }
 
@@ -19,10 +20,10 @@ export class OnboardingMapper {
 
     const schema = new OnboardingRequestSchema();
     schema.id = primitives.id;
-    schema.nombre = primitives.nombre;
-    schema.documento = primitives.documento;
+    schema.name = primitives.name;
+    schema.documentNumber = primitives.documentNumber;
     schema.email = primitives.email;
-    schema.montoInicial = primitives.montoInicial;
+    schema.initialAmount = primitives.initialAmount;
     schema.status = primitives.status;
     schema.createdAt = primitives.createdAt;
 

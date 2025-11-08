@@ -28,7 +28,7 @@ export class GetProductByIdUseCase {
         return JSON.parse(cachedData) as ProductDto;
       }
     } catch (error) {
-      console.error('Error al leer de la caché:', error);
+      console.error('Error reading cache:', error);
     }
 
     const product = await this.productRepository.findById(id);
@@ -46,7 +46,7 @@ export class GetProductByIdUseCase {
         this.CACHE_TTL_SECONDS,
       );
     } catch (error) {
-      console.error('Error al escribir en la caché:', error);
+      console.error('Error writing cache:', error);
     }
 
     return productDto;
@@ -55,8 +55,8 @@ export class GetProductByIdUseCase {
   private mapToDetailDto(product: Product): ProductDto {
     return {
       id: product.id,
-      nombre: product.nombre,
-      descripcion: product.descripcion,
+      name: product.name,
+      description: product.description,
       tasaInteres: product.tasaInteres,
       terminosCondiciones: product.terminosCondiciones,
       requisitosElegibilidad: product.requisitosElegibilidad,

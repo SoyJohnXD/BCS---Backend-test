@@ -3,11 +3,11 @@ import { IsEmail, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 export class OnboardingRequestDto {
   @IsString()
   @IsNotEmpty()
-  nombre: string;
+  name: string;
 
   @IsString()
   @IsNotEmpty()
-  documento: string;
+  documentNumber: string;
 
   @IsEmail()
   @IsNotEmpty()
@@ -15,5 +15,5 @@ export class OnboardingRequestDto {
 
   @IsNumber()
   @Min(0)
-  montoInicial: number;
+  initialAmount: number;
 }

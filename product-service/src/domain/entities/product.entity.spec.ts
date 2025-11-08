@@ -2,8 +2,8 @@ import { Product } from './product.entity';
 
 describe('Product Entity', () => {
   const validProps = {
-    nombre: 'Cuenta de Ahorros',
-    descripcion: 'Descripción completa',
+    name: 'Cuenta de Ahorros',
+    description: 'Descripción completa',
     tasaInteres: 1.5,
     terminosCondiciones: 'Términos completos',
     requisitosElegibilidad: 'Requisitos completos',
@@ -14,18 +14,18 @@ describe('Product Entity', () => {
 
     expect(product).toBeInstanceOf(Product);
     expect(product.id).toBeDefined();
-    expect(product.nombre).toBe('Cuenta de Ahorros');
+    expect(product.name).toBe('Cuenta de Ahorros');
     expect(product.tasaInteres).toBe(1.5);
   });
 
-  it('should throw an error if nombre is empty', () => {
+  it('should throw an error if name is empty', () => {
     const invalidProps = {
       ...validProps,
-      nombre: '  ',
+      name: '  ',
     };
 
     expect(() => Product.create(invalidProps)).toThrow(
-      'El nombre del producto es requerido',
+      'Product name is required',
     );
   });
 
@@ -40,7 +40,7 @@ describe('Product Entity', () => {
 
     expect(product).toBeInstanceOf(Product);
     expect(product.id).toBe(primitives.id);
-    expect(product.descripcion).toBe(primitives.descripcion);
+    expect(product.description).toBe(primitives.description);
   });
 
   it('should convert the entity to primitives', () => {
@@ -49,8 +49,8 @@ describe('Product Entity', () => {
 
     expect(primitives).toEqual({
       id: product.id,
-      nombre: product.nombre,
-      descripcion: product.descripcion,
+      name: product.name,
+      description: product.description,
       tasaInteres: product.tasaInteres,
       terminosCondiciones: product.terminosCondiciones,
       requisitosElegibilidad: product.requisitosElegibilidad,

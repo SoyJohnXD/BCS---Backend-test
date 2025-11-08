@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OnboardingModule } from '@/presentation/onboarding.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -24,6 +25,8 @@ import { OnboardingModule } from '@/presentation/onboarding.module';
         synchronize: true, // TODO: true solo para desarrollo
       }),
     }),
+
+    HttpModule,
 
     OnboardingModule,
   ],

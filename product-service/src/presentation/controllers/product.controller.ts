@@ -29,7 +29,7 @@ export class ProductController {
     const product = await this.getProductByIdUseCase.execute(id);
 
     if (!product) {
-      throw new NotFoundException('Producto no encontrado');
+      throw new NotFoundException('Product not found');
     }
 
     return product;

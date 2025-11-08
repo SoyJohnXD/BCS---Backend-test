@@ -7,16 +7,16 @@ export class OnboardingRequestSchema {
   id: string;
 
   @Column()
-  nombre: string;
+  name: string;
 
   @Column({ unique: true })
-  documento: string;
+  documentNumber: string;
 
   @Column()
   email: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, name: 'monto_inicial' })
-  montoInicial: number;
+  initialAmount: number;
 
   @Column({
     type: 'enum',

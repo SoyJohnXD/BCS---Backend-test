@@ -23,20 +23,21 @@ export class CreateOnboardingUseCase {
     dto: CreateOnboardingUseCaseDto,
   ): Promise<CreateOnboardingUseCaseResultDto> {
     const newRequest = OnboardingRequest.create({
-      nombre: dto.nombre,
-      documento: dto.documento,
+      name: dto.name,
+      documentNumber: dto.documentNumber,
       email: dto.email,
-      montoInicial: dto.montoInicial,
+      initialAmount: dto.initialAmount,
     });
 
     await this.onboardingRepository.save(newRequest);
 
     try {
-      this.logger.log(`Solicitando validación para: ${newRequest.id}`);
-      this.validationApi.requestValidation(newRequest.id);
+      this.logger.log(`Requesting validation for: ${newRequest.id}`);
+      await this.validationApi.requestValidation(newRequest.id);
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
-        `Fallo al solicitar la validación para ${newRequest.id}: ${error.message}`,
+        `Failed to request validation for ${newRequest.id}: ${message}`,
       );
     }
 

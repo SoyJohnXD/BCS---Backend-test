@@ -17,8 +17,8 @@ const mockCacheService = {
 };
 
 const mockProduct = Product.create({
-  nombre: 'Cuenta de Ahorros',
-  descripcion: 'Descripción completa',
+  name: 'Cuenta de Ahorros',
+  description: 'Descripción completa',
   tasaInteres: 1.5,
   terminosCondiciones: 'Términos completos',
   requisitosElegibilidad: 'Requisitos completos',
@@ -28,8 +28,8 @@ const mockId = 'a-valid-uuid';
 
 const expectedDto: ProductDto = {
   id: mockId,
-  nombre: 'Cuenta de Ahorros',
-  descripcion: 'Descripción completa',
+  name: 'Cuenta de Ahorros',
+  description: 'Descripción completa',
   tasaInteres: 1.5,
   terminosCondiciones: 'Términos completos',
   requisitosElegibilidad: 'Requisitos completos',

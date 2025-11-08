@@ -5,8 +5,8 @@ export class ProductMapper {
   static toDomain(schema: ProductSchema): Product {
     return Product.fromPrimitives({
       id: schema.id,
-      nombre: schema.nombre,
-      descripcion: schema.descripcion,
+      name: schema.name,
+      description: schema.description,
       createdAt: schema.createdAt,
       tasaInteres: Number(schema.tasaInteres),
       terminosCondiciones: schema.terminosCondiciones,
@@ -19,8 +19,8 @@ export class ProductMapper {
     const schema = new ProductSchema();
 
     schema.id = primitives.id;
-    schema.nombre = primitives.nombre;
-    schema.descripcion = primitives.descripcion;
+    schema.name = primitives.name;
+    schema.description = primitives.description;
     schema.createdAt = primitives.createdAt;
     schema.tasaInteres = primitives.tasaInteres;
     schema.terminosCondiciones = primitives.terminosCondiciones;

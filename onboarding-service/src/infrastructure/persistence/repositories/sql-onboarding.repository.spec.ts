@@ -15,10 +15,10 @@ const createMockRepository = (): MockRepository<OnboardingRequestSchema> => ({
 
 const mockSchema: OnboardingRequestSchema = {
   id: 'a-valid-uuid',
-  nombre: 'Cliente Prueba',
-  documento: '123456',
+  name: 'Test Client',
+  documentNumber: '123456',
   email: 'test@bank.com',
-  montoInicial: 100,
+  initialAmount: 100,
   status: OnboardingStatus.REQUESTED,
   createdAt: new Date(),
 };

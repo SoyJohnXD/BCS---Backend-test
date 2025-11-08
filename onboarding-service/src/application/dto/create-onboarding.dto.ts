@@ -1,8 +1,8 @@
 export interface CreateOnboardingUseCaseDto {
-  nombre: string;
-  documento: string;
+  name: string;
+  documentNumber: string;
   email: string;
-  montoInicial: number;
+  initialAmount: number;
 }
 
 export interface CreateOnboardingUseCaseResultDto {

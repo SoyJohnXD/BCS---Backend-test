@@ -27,7 +27,7 @@ export class GetProductsUseCase {
         return productList;
       }
     } catch (error) {
-      console.error('Error al leer de la caché:', error);
+      console.error('Error reading cache:', error);
     }
 
     const products = await this.productRepository.findAll();
@@ -42,7 +42,7 @@ export class GetProductsUseCase {
         this.CACHE_TTL_SECONDS,
       );
     } catch (error) {
-      console.error('Error al escribir en la caché:', error);
+      console.error('Error writing cache:', error);
     }
 
     return productList;
@@ -51,7 +51,7 @@ export class GetProductsUseCase {
   private mapToSummaryDto(products: Product[]): ProductListDto {
     const productDtos: ProductSummaryDto[] = products.map((product) => ({
       id: product.id,
-      nombre: product.nombre,
+      name: product.name,
     }));
     return { products: productDtos };
   }

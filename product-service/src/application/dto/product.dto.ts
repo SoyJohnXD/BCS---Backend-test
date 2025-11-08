@@ -1,7 +1,7 @@
 export interface ProductDto {
   id: string;
-  nombre: string;
-  descripcion: string;
+  name: string;
+  description: string;
   tasaInteres: number;
   terminosCondiciones: string;
   requisitosElegibilidad: string;

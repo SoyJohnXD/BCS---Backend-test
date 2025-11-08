@@ -1,52 +1,72 @@
 import { randomUUID } from 'crypto';
 import { OnboardingStatus } from '../value-objects/onboarding-status.vo';
+import { OnboardingRequestFinalizedException } from '../exceptions/onboarding-request-finalized.exception';
 
 export interface CreateOnboardingRequestProps {
-  nombre: string;
-  documento: string;
+  name: string;
+  documentNumber: string;
   email: string;
-  montoInicial: number;
+  initialAmount: number;
 }
 
 export interface OnboardingRequestProps extends CreateOnboardingRequestProps {
   id: string;
   status: OnboardingStatus;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export class OnboardingRequest {
   private readonly _id: string;
-  private _nombre: string;
-  private _documento: string;
+  private _name: string;
+  private _documentNumber: string;
   private _email: string;
-  private _montoInicial: number;
+  private _initialAmount: number;
   private _status: OnboardingStatus;
   private readonly _createdAt: Date;
+  private _updatedAt: Date;
 
   private constructor(props: OnboardingRequestProps) {
     this._id = props.id;
-    this._nombre = props.nombre;
-    this._documento = props.documento;
+    this._name = props.name;
+    this._documentNumber = props.documentNumber;
     this._email = props.email;
-    this._montoInicial = props.montoInicial;
+    this._initialAmount = props.initialAmount;
     this._status = props.status;
     this._createdAt = props.createdAt;
+    this._updatedAt = props.updatedAt;
   }
 
   public static create(props: CreateOnboardingRequestProps): OnboardingRequest {
-    if (props.montoInicial < 0) {
-      throw new Error('El monto inicial no puede ser negativo');
+    if (props.initialAmount < 0) {
+      throw new Error('Initial amount cannot be negative');
     }
 
+    const now = new Date();
     return new OnboardingRequest({
       id: randomUUID(),
-      nombre: props.nombre,
-      documento: props.documento,
+      name: props.name,
+      documentNumber: props.documentNumber,
       email: props.email,
-      montoInicial: props.montoInicial,
+      initialAmount: props.initialAmount,
       status: OnboardingStatus.REQUESTED,
-      createdAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     });
+  }
+
+  public updateStatus(
+    newStatus: OnboardingStatus.APPROVED | OnboardingStatus.REJECTED,
+  ): void {
+    if (
+      this._status === OnboardingStatus.APPROVED ||
+      this._status === OnboardingStatus.REJECTED
+    ) {
+      throw new OnboardingRequestFinalizedException(this._id, this._status);
+    }
+
+    this._status = newStatus;
+    this._updatedAt = new Date();
   }
 
   public static fromPrimitives(
@@ -63,20 +83,20 @@ export class OnboardingRequest {
     return this._status;
   }
 
-  get nombre(): string {
-    return this._nombre;
+  get name(): string {
+    return this._name;
   }
 
-  get documento(): string {
-    return this._documento;
+  get documentNumber(): string {
+    return this._documentNumber;
   }
 
   get email(): string {
     return this._email;
   }
 
-  get montoInicial(): number {
-    return this._montoInicial;
+  get initialAmount(): number {
+    return this._initialAmount;
   }
 
   get createdAt(): Date {
@@ -86,12 +106,13 @@ export class OnboardingRequest {
   public toPrimitives() {
     return {
       id: this._id,
-      nombre: this._nombre,
-      documento: this._documento,
+      name: this._name,
+      documentNumber: this._documentNumber,
       email: this._email,
-      montoInicial: this._montoInicial,
+      initialAmount: this._initialAmount,
       status: this._status,
       createdAt: this._createdAt,
+      updatedAt: this._updatedAt,
     };
   }
 }

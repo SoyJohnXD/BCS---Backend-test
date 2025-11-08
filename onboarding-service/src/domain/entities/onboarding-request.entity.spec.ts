@@ -3,10 +3,10 @@ import { OnboardingStatus } from '../value-objects/onboarding-status.vo';
 
 describe('OnboardingRequest Entity', () => {
   const validProps = {
-    nombre: 'Cliente Prueba',
-    documento: '123456789',
-    email: 'cliente@prueba.com',
-    montoInicial: 100,
+    name: 'Test Client',
+    documentNumber: '123456789',
+    email: 'client@test.com',
+    initialAmount: 100,
   };
 
   it('should create a new request with REQUESTED status', () => {
@@ -15,29 +15,30 @@ describe('OnboardingRequest Entity', () => {
     expect(request).toBeInstanceOf(OnboardingRequest);
     expect(request.id).toBeDefined();
     expect(request.status).toBe(OnboardingStatus.REQUESTED);
-    expect(request.toPrimitives().montoInicial).toBe(100);
+    expect(request.toPrimitives().initialAmount).toBe(100);
   });
 
-  it('should throw an error if montoInicial is negative', () => {
+  it('should throw an error if initialAmount is negative', () => {
     const invalidProps = {
       ...validProps,
-      montoInicial: -50,
+      initialAmount: -50,
     };
 
     expect(() => OnboardingRequest.create(invalidProps)).toThrow(
-      'El monto inicial no puede ser negativo',
+      'Initial amount cannot be negative',
     );
   });
 
   it('should reconstitute a user from primitives', () => {
     const primitives = {
       id: 'a-valid-uuid',
-      nombre: 'Cliente Existente',
-      documento: '987654321',
-      email: 'existente@prueba.com',
-      montoInicial: 500,
+      name: 'Existing Client',
+      documentNumber: '987654321',
+      email: 'existing@test.com',
+      initialAmount: 500,
       status: OnboardingStatus.APPROVED,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const request = OnboardingRequest.fromPrimitives(primitives);
@@ -53,12 +54,13 @@ describe('OnboardingRequest Entity', () => {
 
     expect(primitives).toEqual({
       id: request.id,
-      nombre: request.nombre,
-      documento: request.documento,
+      name: request.name,
+      documentNumber: request.documentNumber,
       email: request.email,
-      montoInicial: request.montoInicial,
+      initialAmount: request.initialAmount,
       status: OnboardingStatus.REQUESTED,
       createdAt: request.createdAt,
+      updatedAt: primitives.updatedAt, // updatedAt included
     });
   });
 });

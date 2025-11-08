@@ -6,10 +6,10 @@ export class ProductSchema {
   id: string;
 
   @Column()
-  nombre: string;
+  name: string;
 
   @Column({ type: 'text' })
-  descripcion: string;
+  description: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, name: 'tasa_interes' })
   tasaInteres: number;

@@ -1,8 +1,8 @@
 import { randomUUID } from 'crypto';
 
 export interface CreateProductProps {
-  nombre: string;
-  descripcion: string;
+  name: string;
+  description: string;
   tasaInteres: number;
   terminosCondiciones: string;
   requisitosElegibilidad: string;
@@ -15,8 +15,8 @@ export interface ProductProps extends CreateProductProps {
 
 export class Product {
   private readonly _id: string;
-  private _nombre: string;
-  private _descripcion: string;
+  private _name: string;
+  private _description: string;
   private readonly _createdAt: Date;
   private _tasaInteres: number;
   private _terminosCondiciones: string;
@@ -24,8 +24,8 @@ export class Product {
 
   private constructor(props: ProductProps) {
     this._id = props.id;
-    this._nombre = props.nombre;
-    this._descripcion = props.descripcion;
+    this._name = props.name;
+    this._description = props.description;
     this._createdAt = props.createdAt;
     this._tasaInteres = props.tasaInteres;
     this._terminosCondiciones = props.terminosCondiciones;
@@ -33,14 +33,14 @@ export class Product {
   }
 
   public static create(props: CreateProductProps): Product {
-    if (!props.nombre || props.nombre.trim().length === 0) {
-      throw new Error('El nombre del producto es requerido');
+    if (!props.name || props.name.trim().length === 0) {
+      throw new Error('Product name is required');
     }
 
     return new Product({
       id: randomUUID(),
-      nombre: props.nombre,
-      descripcion: props.descripcion,
+      name: props.name,
+      description: props.description,
       createdAt: new Date(),
 
       tasaInteres: props.tasaInteres,
@@ -56,11 +56,11 @@ export class Product {
   get id(): string {
     return this._id;
   }
-  get nombre(): string {
-    return this._nombre;
+  get name(): string {
+    return this._name;
   }
-  get descripcion(): string {
-    return this._descripcion;
+  get description(): string {
+    return this._description;
   }
   get createdAt(): Date {
     return this._createdAt;
@@ -79,8 +79,8 @@ export class Product {
   public toPrimitives() {
     return {
       id: this._id,
-      nombre: this._nombre,
-      descripcion: this._descripcion,
+      name: this._name,
+      description: this._description,
       createdAt: this._createdAt,
       tasaInteres: this._tasaInteres,
       terminosCondiciones: this._terminosCondiciones,
