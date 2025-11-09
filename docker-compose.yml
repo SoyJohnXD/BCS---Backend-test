@@ -104,6 +104,11 @@ services:
       - /app/node_modules
       - /app/.next
     command: npm run dev
+    ports:
+      - "3001:3000"
+    environment:
+      - API_GATEWAY_URL=${API_GATEWAY_URL}
+      - NEXT_PUBLIC_CLIENT_URL=http://localhost:3001
 
   db-auth:
     image: postgres:14-alpine
