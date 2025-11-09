@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OnboardingController } from './controllers/onboarding.controller';
 import { CreateOnboardingUseCase } from '@/application/use-cases/create-onboarding.use-case';
@@ -13,7 +14,13 @@ import { INotificationPort } from '@/application/ports/notification.port';
 import { LogNotificationAdapter } from '@/infrastructure/services/log-notification.adapter';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([OnboardingRequestSchema])],
+  imports: [
+    TypeOrmModule.forFeature([OnboardingRequestSchema]),
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 5,
+    }),
+  ],
   controllers: [OnboardingController, InternalController],
   providers: [
     CreateOnboardingUseCase,

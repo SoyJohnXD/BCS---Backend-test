@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IUserRepository } from '@/domain/repositories/user.repository';
 import { IPasswordHasher } from '@/application/ports/password-hasher.port';
 import { ITokenService } from '@/application/ports/token.port';
@@ -8,6 +8,8 @@ import { InvalidCredentialsException } from '@/domain/exceptions/invalid-credent
 
 @Injectable()
 export class LoginUseCase {
+  private readonly logger = new Logger(LoginUseCase.name);
+
   constructor(
     @Inject(IUserRepository)
     private readonly userRepository: IUserRepository,
@@ -19,18 +21,18 @@ export class LoginUseCase {
     private readonly tokenService: ITokenService,
   ) {}
 
-  /**
-   * Ejecuta el caso de uso de inicio de sesión.
-   * @param dto Los datos de email y contraseña.
-   * @returns Una promesa que resuelve al DTO con el token.
-   * @throws {InvalidCredentialsException} Si el email o la contraseña son incorrectos.
-   */
   async execute(dto: LoginUseCaseDto): Promise<LoginUseCaseResultDto> {
+  
+    this.logger.log(`Iniciando login para ${dto.email}`);
+
     const user = await this.userRepository.findByEmail(dto.email);
 
     if (!user) {
+      this.logger.warn(`Usuario no encontrado: ${dto.email}`);
       throw new InvalidCredentialsException();
     }
+
+    this.logger.log(`Usuario encontrado: ${user.id}. Comparando contraseña...`);
 
     const isPasswordValid = await this.passwordHasher.compare(
       dto.password,
@@ -38,14 +40,18 @@ export class LoginUseCase {
     );
 
     if (!isPasswordValid) {
+      this.logger.warn(`Contraseña inválida para ${user.id}`);
       throw new InvalidCredentialsException();
     }
+
+    this.logger.log(`Contraseña válida. Generando token...`);
 
     const token = await this.tokenService.sign({
       sub: user.id,
       email: user.email,
     });
 
+    this.logger.log(`Login exitoso para ${user.id}.`);
     return { token };
   }
 }

@@ -5,6 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import { Request } from 'express';
 
 interface JwtPayload {
@@ -17,16 +19,11 @@ type AuthenticatedRequest = Request & { user: JwtPayload };
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  /**
-   * Determina si la solicitud actual está autorizada.
-   * Valida el token JWT presente en la cabecera de autorización.
-   *
-   * @param context El contexto de ejecución de la solicitud.
-   * @returns Un booleano que indica si la solicitud puede proceder.
-   * @throws {UnauthorizedException} Si el token falta o no es válido.
-   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractTokenFromHeader(request);
@@ -36,20 +33,28 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+      const secret = this.configService.get<string>('JWT_SECRET');
+
+      if (!secret) {
+        throw new UnauthorizedException('JWT secret not configured');
+      }
+
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
+        secret,
+      });
       request.user = payload;
-    } catch {
-      throw new UnauthorizedException('Invalid token');
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        throw new UnauthorizedException('Token expired');
+      }
+      if (err instanceof JsonWebTokenError) {
+        throw new UnauthorizedException('Invalid token');
+      }
+      throw new UnauthorizedException('Token verification failed');
     }
     return true;
   }
 
-  /**
-   * Extrae el token JWT de la cabecera 'Authorization' (tipo Bearer).
-   *
-   * @param request La solicitud HTTP entrante.
-   * @returns El token como string, o undefined si no se encuentra.
-   */
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

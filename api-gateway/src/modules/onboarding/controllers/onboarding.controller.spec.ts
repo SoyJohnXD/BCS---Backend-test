@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OnboardingController } from './onboarding.controller';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '@/modules/security/guards/jwt-auth.guard';
+import { SecurityModule } from '@/modules/security/security.module';
 import type { Request } from 'express';
 import { of, throwError } from 'rxjs';
 import { AxiosError, type AxiosResponse } from 'axios';
@@ -39,6 +40,7 @@ describe('OnboardingController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OnboardingController],
+      imports: [SecurityModule],
       providers: [
         { provide: HttpService, useValue: httpServiceMock },
         { provide: ConfigService, useValue: configServiceMock },
@@ -48,16 +50,18 @@ describe('OnboardingController', () => {
       .useValue(mockAuthGuard)
       .compile();
 
-    controller = module.get<OnboardingController>(OnboardingController);
+    const resolvedController =
+      module.get<OnboardingController>(OnboardingController);
+    controller = resolvedController;
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should proxy the request (happy path)', async () => {
+  it('should proxy the root onboarding request (happy path)', async () => {
     const mockRequest = {
-      path: '/test-path',
+      path: '/',
       method: 'POST',
     } as Request;
     const mockBody = { name: 'test' };
@@ -77,14 +81,14 @@ describe('OnboardingController', () => {
     expect(httpServiceMock.request).toHaveBeenCalledTimes(1);
     expect(httpServiceMock.request).toHaveBeenCalledWith({
       method: 'post',
-      url: 'http://fake-onboarding-service:3000/test-path',
+      url: 'http://fake-onboarding-service:3000/',
       data: mockBody,
     });
   });
 
   it('should propagate AxiosError as HttpException', async () => {
     const mockRequest = {
-      path: '/test-error',
+      path: '/',
       method: 'POST',
     } as Request;
     const mockBody = { name: '' };

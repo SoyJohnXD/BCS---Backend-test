@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import type { RequestHandler } from 'express';
+import type { RequestHandler, Request } from 'express';
 
 interface ProxyServiceOptions {
   context: string;
@@ -12,13 +12,6 @@ interface ProxyDefinition {
   middleware: RequestHandler;
 }
 
-/**
- * Función que genera un array de middlewares de proxy configurados.
- * Lee las URLs de los servicios de las variables de entorno.
- *
- * @param configService El servicio de configuración para leer las variables de entorno.
- * @returns Un array de middlewares de proxy listos para ser aplicados.
- */
 export const configureProxy = (
   configService: ConfigService,
 ): ProxyDefinition[] => {
@@ -32,25 +25,20 @@ export const configureProxy = (
 
   const services: ProxyServiceOptions[] = [
     {
-      context: '/auth',
-      target: getRequiredServiceUrl('AUTH_SERVICE_URL'),
-    },
-    {
       context: '/products',
       target: getRequiredServiceUrl('PRODUCT_SERVICE_URL'),
     },
   ];
 
-  const proxies = services.map((service) => {
-    return {
-      context: service.context,
-      middleware: createProxyMiddleware({
-        target: service.target,
-        changeOrigin: true,
-        pathRewrite: (path) => path,
-      }),
-    };
-  });
-
-  return proxies;
+  return services.map((service) => ({
+    context: service.context,
+    middleware: createProxyMiddleware({
+      target: service.target,
+      changeOrigin: true,
+      pathRewrite: (path: string, req: Request) => {
+        const originalPath = req.originalUrl;
+        return originalPath ?? path;
+      },
+    }),
+  }));
 };

@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
-import { ExecutionContext } from '@nestjs/common';
+import { UnauthorizedException, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
 describe('JwtAuthGuard', () => {
@@ -26,14 +25,12 @@ describe('JwtAuthGuard', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JwtAuthGuard,
-        {
-          provide: JwtService,
-          useValue: mockJwtService,
-        },
+        { provide: JwtService, useValue: mockJwtService },
       ],
     }).compile();
 
-    guard = module.get<JwtAuthGuard>(JwtAuthGuard);
+    const resolvedGuard = module.get<JwtAuthGuard>(JwtAuthGuard);
+    guard = resolvedGuard;
     jest.clearAllMocks();
   });
 
@@ -56,12 +53,8 @@ describe('JwtAuthGuard', () => {
   });
 
   it('should throw UnauthorizedException if no token is provided', async () => {
-    const mockRequest = {
-      headers: {},
-    } as Partial<Request>;
-
+    const mockRequest = { headers: {} } as Partial<Request>;
     const mockContext = createMockExecutionContext(mockRequest);
-
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,
     );
@@ -71,9 +64,7 @@ describe('JwtAuthGuard', () => {
     const mockRequest = {
       headers: { authorization: 'Basic some-other-token' },
     } as Partial<Request>;
-
     const mockContext = createMockExecutionContext(mockRequest);
-
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,
     );
@@ -83,10 +74,8 @@ describe('JwtAuthGuard', () => {
     const mockRequest = {
       headers: { authorization: 'Bearer expired-or-invalid-token' },
     } as Partial<Request>;
-
     const mockContext = createMockExecutionContext(mockRequest);
     const error = new Error('Token expired');
-
     mockJwtService.verifyAsync.mockRejectedValue(error);
 
     await expect(guard.canActivate(mockContext)).rejects.toThrow(

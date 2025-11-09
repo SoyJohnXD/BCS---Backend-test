@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ProxyModule } from './proxy.module';
+import { ProxyModule } from './proxy/proxy.module';
 import { JwtModule } from '@nestjs/jwt';
 import { HttpModule } from '@nestjs/axios';
-import { AuthModule } from './auth/auth.module';
-import { OnboardingModule } from './onboarding/onboarding.module';
+import { AuthProxyModule } from './modules/auth-proxy/auth-proxy.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
     }),
 
     HttpModule,
-    AuthModule,
+    AuthProxyModule,
     ProxyModule,
     OnboardingModule,
   ],
