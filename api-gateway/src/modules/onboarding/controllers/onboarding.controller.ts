@@ -14,6 +14,13 @@ import { firstValueFrom } from 'rxjs';
 import { AxiosError, type Method } from 'axios';
 import type { Request } from 'express';
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub: string;
+    [key: string]: unknown;
+  };
+}
+
 @Controller('onboarding')
 export class OnboardingController {
   private readonly onboardingServiceUrl: string;
@@ -35,10 +42,12 @@ export class OnboardingController {
   @UseGuards(JwtAuthGuard)
   async proxyOnboarding(
     @Body() body: unknown,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
   ): Promise<unknown> {
     const url = `${this.onboardingServiceUrl}${req.path}`;
     const method = this.resolveHttpMethod(req.method);
+    const authHeader = req.headers?.authorization;
+    const userId = req.user?.sub;
 
     try {
       const response = await firstValueFrom(
@@ -46,6 +55,7 @@ export class OnboardingController {
           method,
           url,
           data: body,
+          headers: this.buildForwardHeaders(authHeader, userId),
         }),
       );
       return response.data as unknown;
@@ -106,5 +116,19 @@ export class OnboardingController {
 
   private isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
+  }
+
+  private buildForwardHeaders(
+    authHeader?: string,
+    userId?: string,
+  ): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (authHeader) {
+      headers.Authorization = authHeader;
+    }
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+    return headers;
   }
 }

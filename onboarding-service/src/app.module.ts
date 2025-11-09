@@ -23,6 +23,7 @@ import { HttpModule } from '@nestjs/axios';
         database: configService.get<string>('DATABASE_NAME'),
         autoLoadEntities: true,
         synchronize: true, // TODO: true solo para desarrollo
+        dropSchema: true, // TODO true solo para desarrollo
       }),
     }),
 

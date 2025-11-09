@@ -56,10 +56,13 @@ export class GetProductByIdUseCase {
     return {
       id: product.id,
       name: product.name,
+      shortDescription: product.shortDescription,
       description: product.description,
-      tasaInteres: product.tasaInteres,
-      terminosCondiciones: product.terminosCondiciones,
-      requisitosElegibilidad: product.requisitosElegibilidad,
+      interestRate: product.interestRate,
+      termsAndConditions: product.termsAndConditions,
+      eligibilityRequirements: product.eligibilityRequirements,
+      benefits: product.benefits,
+      imageTags: product.imageTags,
     };
   }
 }

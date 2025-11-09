@@ -3,7 +3,6 @@ import { OnboardingController } from './onboarding.controller';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from '@/modules/security/guards/jwt-auth.guard';
-import { SecurityModule } from '@/modules/security/security.module';
 import type { Request } from 'express';
 import { of, throwError } from 'rxjs';
 import { AxiosError, type AxiosResponse } from 'axios';
@@ -40,7 +39,6 @@ describe('OnboardingController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OnboardingController],
-      imports: [SecurityModule],
       providers: [
         { provide: HttpService, useValue: httpServiceMock },
         { provide: ConfigService, useValue: configServiceMock },
@@ -63,7 +61,9 @@ describe('OnboardingController', () => {
     const mockRequest = {
       path: '/',
       method: 'POST',
-    } as Request;
+      headers: { authorization: 'Bearer token' },
+      user: { sub: 'user-123' },
+    } as unknown as Request;
     const mockBody = { name: 'test' };
     const mockResponseData = { id: '123', status: 'REQUESTED' };
 
@@ -83,6 +83,10 @@ describe('OnboardingController', () => {
       method: 'post',
       url: 'http://fake-onboarding-service:3000/',
       data: mockBody,
+      headers: {
+        Authorization: 'Bearer token',
+        'x-user-id': 'user-123',
+      },
     });
   });
 
@@ -90,7 +94,9 @@ describe('OnboardingController', () => {
     const mockRequest = {
       path: '/',
       method: 'POST',
-    } as Request;
+      headers: { authorization: 'Bearer token' },
+      user: { sub: 'user-123' },
+    } as unknown as Request;
     const mockBody = { name: '' };
     const mockErrorResponse = {
       message: 'Name is required',

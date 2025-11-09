@@ -12,6 +12,8 @@ export class OnboardingMapper {
       status: schema.status,
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
+      productId: schema.productId,
+      createdByUserId: schema.createdByUserId,
     });
   }
 
@@ -27,6 +29,8 @@ export class OnboardingMapper {
       status: primitives.status,
       createdAt: primitives.createdAt,
       updatedAt: primitives.updatedAt,
+      productId: primitives.productId,
+      createdByUserId: primitives.createdByUserId,
     };
   }
 }

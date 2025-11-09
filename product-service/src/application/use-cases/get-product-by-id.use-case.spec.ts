@@ -19,21 +19,27 @@ const mockCacheService = {
 const mockId = 'a-valid-uuid';
 const mockProduct = Product.fromPrimitives({
   id: mockId,
-  name: 'Cuenta de Ahorros',
-  description: 'Descripción completa',
-  tasaInteres: 1.5,
-  terminosCondiciones: 'Términos completos',
-  requisitosElegibilidad: 'Requisitos completos',
+  name: 'Savings Account',
+  shortDescription: 'A flexible savings account',
+  description: 'Full long description',
+  interestRate: 1.5,
+  termsAndConditions: 'Full terms',
+  eligibilityRequirements: ['18+', 'ID required'],
+  benefits: ['No fees'],
+  imageTags: ['savings', 'money'],
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
 });
 
 const expectedDto: ProductDto = {
   id: mockId,
-  name: 'Cuenta de Ahorros',
-  description: 'Descripción completa',
-  tasaInteres: 1.5,
-  terminosCondiciones: 'Términos completos',
-  requisitosElegibilidad: 'Requisitos completos',
+  name: 'Savings Account',
+  shortDescription: 'A flexible savings account',
+  description: 'Full long description',
+  interestRate: 1.5,
+  termsAndConditions: 'Full terms',
+  eligibilityRequirements: ['18+', 'ID required'],
+  benefits: ['No fees'],
+  imageTags: ['savings', 'money'],
 };
 const cacheKey = `product_detail:${mockId}`;
 

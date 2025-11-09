@@ -3,6 +3,8 @@ export interface CreateOnboardingUseCaseDto {
   documentNumber: string;
   email: string;
   initialAmount: number;
+  productId: string;
+  createdByUserId: string;
 }
 
 export interface CreateOnboardingUseCaseResultDto {

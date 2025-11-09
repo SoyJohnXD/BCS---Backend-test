@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -13,6 +14,7 @@ import { SqlUserRepository } from '@/infrastructure/persistence/repositories/sql
 import { BcryptAdapter } from '@/infrastructure/services/bcrypt.adapter';
 import { JwtAdapter } from '@/infrastructure/services/jwt.adapter';
 import { SeederService } from '@/infrastructure/seeding/seeder.service';
+import { InvalidCredentialsExceptionFilter } from '@/presentation/filters/invalid-credentials-exception.filter';
 
 @Module({
   imports: [
@@ -35,6 +37,10 @@ import { SeederService } from '@/infrastructure/seeding/seeder.service';
     BcryptAdapter,
     JwtAdapter,
     SqlUserRepository,
+    {
+      provide: APP_FILTER,
+      useClass: InvalidCredentialsExceptionFilter,
+    },
     {
       provide: IUserRepository,
       useClass: SqlUserRepository,

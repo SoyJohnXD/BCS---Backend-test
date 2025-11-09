@@ -46,7 +46,12 @@ describe('ProductController', () => {
   describe('getProductById', () => {
     it('should call GetProductByIdUseCase.execute with the correct id', async () => {
       const id = 'a-valid-uuid';
-      const expectedResult = { id, name: 'Test', description: '...' };
+      const expectedResult = {
+        id,
+        name: 'Test',
+        shortDescription: 'Short',
+        description: '...',
+      };
       mockGetProductByIdUseCase.execute.mockResolvedValue(expectedResult);
 
       const result = await controller.getProductById(id);

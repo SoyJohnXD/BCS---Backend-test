@@ -22,7 +22,8 @@ import { redisStore } from 'cache-manager-redis-store';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         autoLoadEntities: true,
-        synchronize: true, // true solo para desarrollo
+        synchronize: true, // DEV ONLY - set false in production
+        dropSchema: true, // DEV ONLY - rebuild schema on each launch
       }),
     }),
 

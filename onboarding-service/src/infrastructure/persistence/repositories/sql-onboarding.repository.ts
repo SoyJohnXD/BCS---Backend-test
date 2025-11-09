@@ -8,6 +8,7 @@ import {
   OnboardingRequestSchema,
 } from '../entities/onboarding-request.schema';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
+import { OnboardingStatus } from '@/domain/value-objects/onboarding-status.vo';
 
 @Injectable()
 export class SqlOnboardingRepository implements IOnboardingRepository {
@@ -35,5 +36,20 @@ export class SqlOnboardingRepository implements IOnboardingRepository {
   async update(request: OnboardingRequest): Promise<void> {
     const schema = OnboardingMapper.toPersistence(request);
     await this.typeOrmRepo.save(schema);
+  }
+
+  async findActiveByUserAndProduct(
+    userId: string,
+    productId: string,
+  ): Promise<OnboardingRequest | null> {
+    const found = await this.typeOrmRepo.findOne({
+      where: {
+        createdByUserId: userId,
+        productId: productId,
+        status: OnboardingStatus.REQUESTED,
+      } as any,
+    });
+
+    return found ? OnboardingMapper.toDomain(found) : null;
   }
 }

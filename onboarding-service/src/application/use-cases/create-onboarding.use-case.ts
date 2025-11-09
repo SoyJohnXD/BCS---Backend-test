@@ -6,6 +6,9 @@ import {
   CreateOnboardingUseCaseResultDto,
 } from '../dto/create-onboarding.dto';
 import { IValidationApiPort } from '../ports/validation-api.port';
+import { IProductLookupPort } from '@/application/ports/product-lookup.port';
+import { OnboardingRequestInProgressException } from '@/domain/exceptions/onboarding-request-in-progress.exception';
+import { OnboardingProductNotFoundException } from '@/domain/exceptions/product-not-found.exception';
 
 @Injectable()
 export class CreateOnboardingUseCase {
@@ -17,16 +20,36 @@ export class CreateOnboardingUseCase {
 
     @Inject(IValidationApiPort)
     private readonly validationApi: IValidationApiPort,
+
+    @Inject(IProductLookupPort)
+    private readonly productLookup: IProductLookupPort,
   ) {}
 
   async execute(
     dto: CreateOnboardingUseCaseDto,
   ): Promise<CreateOnboardingUseCaseResultDto> {
+    const productExists = await this.productLookup.exists(dto.productId);
+    if (!productExists) {
+      throw new OnboardingProductNotFoundException(dto.productId);
+    }
+
+    const active = await this.onboardingRepository.findActiveByUserAndProduct(
+      dto.createdByUserId,
+      dto.productId,
+    );
+    if (active) {
+      throw new OnboardingRequestInProgressException(
+        dto.createdByUserId,
+        dto.productId,
+      );
+    }
     const newRequest = OnboardingRequest.create({
       name: dto.name,
       documentNumber: dto.documentNumber,
       email: dto.email,
       initialAmount: dto.initialAmount,
+      productId: dto.productId,
+      createdByUserId: dto.createdByUserId,
     });
 
     await this.onboardingRepository.save(newRequest);

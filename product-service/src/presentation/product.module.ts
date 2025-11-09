@@ -9,6 +9,8 @@ import { ProductSchema } from '@/infrastructure/persistence/entities/product.sch
 import { SqlProductRepository } from '@/infrastructure/persistence/repositories/sql-product.repository';
 import { RedisCacheAdapter } from '@/infrastructure/services/redis-cache.adapter';
 import { SeederService } from '@/infrastructure/seeding/seeder.service';
+import { APP_FILTER } from '@nestjs/core';
+import { DomainExceptionFilter } from './filters/domain-exception.filter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProductSchema])],
@@ -30,6 +32,10 @@ import { SeederService } from '@/infrastructure/seeding/seeder.service';
     },
 
     SeederService,
+    {
+      provide: APP_FILTER,
+      useClass: DomainExceptionFilter,
+    },
   ],
 })
 export class ProductModule {}

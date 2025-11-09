@@ -41,6 +41,8 @@ const mockSchema: OnboardingRequestOrmEntity = {
   status: OnboardingStatus.REQUESTED,
   createdAt: mockTimestamp,
   updatedAt: mockTimestamp,
+  productId: 'product-uuid',
+  createdByUserId: 'user-uuid',
 };
 
 const mockDomain = OnboardingRequest.fromPrimitives({
@@ -52,6 +54,8 @@ const mockDomain = OnboardingRequest.fromPrimitives({
   status: mockSchema.status,
   createdAt: mockTimestamp,
   updatedAt: mockTimestamp,
+  productId: mockSchema.productId,
+  createdByUserId: mockSchema.createdByUserId,
 });
 
 describe('SqlOnboardingRepository', () => {

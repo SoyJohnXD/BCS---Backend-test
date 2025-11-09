@@ -11,6 +11,8 @@ export interface OnboardingRequestOrmEntity {
   status: OnboardingStatus;
   createdAt: Date;
   updatedAt: Date;
+  productId: string;
+  createdByUserId: string;
 }
 
 export const OnboardingRequestSchema =
@@ -48,6 +50,16 @@ export const OnboardingRequestSchema =
       status: {
         type: 'enum',
         enum: OnboardingStatus,
+        nullable: false,
+      },
+      productId: {
+        type: 'uuid',
+        name: 'product_id',
+        nullable: false,
+      },
+      createdByUserId: {
+        type: 'uuid',
+        name: 'created_by_user_id',
         nullable: false,
       },
       createdAt: {

@@ -52,6 +52,7 @@ export class GetProductsUseCase {
     const productDtos: ProductSummaryDto[] = products.map((product) => ({
       id: product.id,
       name: product.name,
+      shortDescription: product.shortDescription,
     }));
     return { products: productDtos };
   }

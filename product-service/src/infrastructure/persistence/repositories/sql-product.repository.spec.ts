@@ -22,15 +22,18 @@ const createMockRepository = <
 
 const mockSchema: ProductSchema = {
   id: 'a-valid-uuid',
-  name: 'Cuenta de Ahorros',
-  description: 'Descripción completa',
-  tasaInteres: 1.5,
-  terminosCondiciones: 'Términos completos',
-  requisitosElegibilidad: 'Requisitos completos',
+  name: 'Savings Account',
+  shortDescription: 'A flexible savings account',
+  description: 'Full long description',
+  interestRate: 1.5,
+  termsAndConditions: 'Full terms',
+  eligibilityRequirements: ['18+', 'ID required'],
+  benefits: ['No fees'],
+  imageTags: ['savings', 'money'],
   createdAt: new Date(),
 };
 
-const mockDomain = Product.fromPrimitives(mockSchema);
+const mockDomain = Product.fromPrimitives(mockSchema as any);
 
 describe('SqlProductRepository', () => {
   let repository: SqlProductRepository;
@@ -67,7 +70,7 @@ describe('SqlProductRepository', () => {
         throw new Error('Expected product to be returned');
       }
       expect(result.id).toBe(mockSchema.id);
-      expect(result.tasaInteres).toBe(1.5);
+      expect(result.interestRate).toBe(1.5);
     });
 
     it('should return null if product not found', async () => {
@@ -103,7 +106,7 @@ describe('SqlProductRepository', () => {
       expect(typeOrmRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           id: mockDomain.id,
-          tasaInteres: mockDomain.tasaInteres,
+          interestRate: mockDomain.interestRate as unknown as number,
         }),
       );
 

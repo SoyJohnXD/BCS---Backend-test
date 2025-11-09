@@ -1,12 +1,17 @@
 import { Product } from './product.entity';
+import { InvalidProductNameException } from '@/domain/exceptions/invalid-product-name.exception';
+import { MissingShortDescriptionException } from '@/domain/exceptions/missing-short-description.exception';
 
 describe('Product Entity', () => {
   const validProps = {
-    name: 'Cuenta de Ahorros',
-    description: 'Descripción completa',
-    tasaInteres: 1.5,
-    terminosCondiciones: 'Términos completos',
-    requisitosElegibilidad: 'Requisitos completos',
+    name: 'Savings Account',
+    shortDescription: 'Flexible savings account',
+    description: 'Full long description',
+    interestRate: 1.5,
+    termsAndConditions: 'Full terms',
+    eligibilityRequirements: ['18+', 'Valid ID'],
+    benefits: ['No fees'],
+    imageTags: ['savings', 'money'],
   };
 
   it('should create a new product with valid properties', () => {
@@ -14,18 +19,23 @@ describe('Product Entity', () => {
 
     expect(product).toBeInstanceOf(Product);
     expect(product.id).toBeDefined();
-    expect(product.name).toBe('Cuenta de Ahorros');
-    expect(product.tasaInteres).toBe(1.5);
+    expect(product.name).toBe(validProps.name);
+    expect(product.interestRate).toBe(1.5);
+    expect(product.shortDescription).toBe(validProps.shortDescription);
+    expect(product.benefits).toEqual(['No fees']);
   });
 
   it('should throw an error if name is empty', () => {
-    const invalidProps = {
-      ...validProps,
-      name: '  ',
-    };
-
+    const invalidProps = { ...validProps, name: '  ' };
     expect(() => Product.create(invalidProps)).toThrow(
-      'Product name is required',
+      InvalidProductNameException,
+    );
+  });
+
+  it('should throw if shortDescription empty', () => {
+    const invalidProps = { ...validProps, shortDescription: '   ' };
+    expect(() => Product.create(invalidProps)).toThrow(
+      MissingShortDescriptionException,
     );
   });
 
@@ -35,7 +45,6 @@ describe('Product Entity', () => {
       createdAt: new Date(),
       ...validProps,
     };
-
     const product = Product.fromPrimitives(primitives);
 
     expect(product).toBeInstanceOf(Product);
@@ -46,15 +55,17 @@ describe('Product Entity', () => {
   it('should convert the entity to primitives', () => {
     const product = Product.create(validProps);
     const primitives = product.toPrimitives();
-
     expect(primitives).toEqual({
       id: product.id,
       name: product.name,
+      shortDescription: product.shortDescription,
       description: product.description,
-      tasaInteres: product.tasaInteres,
-      terminosCondiciones: product.terminosCondiciones,
-      requisitosElegibilidad: product.requisitosElegibilidad,
       createdAt: product.createdAt,
+      interestRate: product.interestRate,
+      termsAndConditions: product.termsAndConditions,
+      eligibilityRequirements: product.eligibilityRequirements,
+      benefits: product.benefits,
+      imageTags: product.imageTags,
     });
   });
 });

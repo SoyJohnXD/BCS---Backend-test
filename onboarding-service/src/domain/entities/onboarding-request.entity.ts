@@ -7,6 +7,8 @@ export interface CreateOnboardingRequestProps {
   documentNumber: string;
   email: string;
   initialAmount: number;
+  productId: string;
+  createdByUserId: string;
 }
 
 export interface OnboardingRequestProps extends CreateOnboardingRequestProps {
@@ -25,6 +27,8 @@ export class OnboardingRequest {
   private _status: OnboardingStatus;
   private readonly _createdAt: Date;
   private _updatedAt: Date;
+  private _productId: string;
+  private _createdByUserId: string;
 
   private constructor(props: OnboardingRequestProps) {
     this._id = props.id;
@@ -35,6 +39,8 @@ export class OnboardingRequest {
     this._status = props.status;
     this._createdAt = props.createdAt;
     this._updatedAt = props.updatedAt;
+    this._productId = props.productId;
+    this._createdByUserId = props.createdByUserId;
   }
 
   public static create(props: CreateOnboardingRequestProps): OnboardingRequest {
@@ -52,6 +58,8 @@ export class OnboardingRequest {
       status: OnboardingStatus.REQUESTED,
       createdAt: now,
       updatedAt: now,
+      productId: props.productId,
+      createdByUserId: props.createdByUserId,
     });
   }
 
@@ -103,6 +111,14 @@ export class OnboardingRequest {
     return this._createdAt;
   }
 
+  get productId(): string {
+    return this._productId;
+  }
+
+  get createdByUserId(): string {
+    return this._createdByUserId;
+  }
+
   public toPrimitives() {
     return {
       id: this._id,
@@ -113,6 +129,8 @@ export class OnboardingRequest {
       status: this._status,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
+      productId: this._productId,
+      createdByUserId: this._createdByUserId,
     };
   }
 }

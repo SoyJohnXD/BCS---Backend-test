@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException, ExecutionContext } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
 describe('JwtAuthGuard', () => {
@@ -9,6 +10,12 @@ describe('JwtAuthGuard', () => {
 
   const mockJwtService = {
     verifyAsync: jest.fn(),
+  };
+
+  const mockConfigService = {
+    get: jest.fn((key: string) =>
+      key === 'JWT_SECRET' ? 'test-secret' : undefined,
+    ),
   };
 
   const createMockExecutionContext = (
@@ -26,6 +33,7 @@ describe('JwtAuthGuard', () => {
       providers: [
         JwtAuthGuard,
         { provide: JwtService, useValue: mockJwtService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -49,7 +57,9 @@ describe('JwtAuthGuard', () => {
     mockJwtService.verifyAsync.mockResolvedValue(mockPayload);
 
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
-    expect(mockJwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
+    expect(mockJwtService.verifyAsync).toHaveBeenCalledWith('valid-token', {
+      secret: 'test-secret',
+    });
   });
 
   it('should throw UnauthorizedException if no token is provided', async () => {
@@ -83,6 +93,7 @@ describe('JwtAuthGuard', () => {
     );
     expect(mockJwtService.verifyAsync).toHaveBeenCalledWith(
       'expired-or-invalid-token',
+      { secret: 'test-secret' },
     );
   });
 });

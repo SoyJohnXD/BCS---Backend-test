@@ -37,6 +37,7 @@ describe('OnboardingController', () => {
       documentNumber: '12345',
       email: 'test@user.com',
       initialAmount: 100,
+      productId: 'product-uuid',
     };
 
     const useCaseResult = {
@@ -46,7 +47,7 @@ describe('OnboardingController', () => {
 
     mockCreateOnboardingUseCase.execute.mockResolvedValue(useCaseResult);
 
-    const result = await controller.create(requestDto);
+    const result = await controller.create(requestDto, 'user-uuid');
 
     expect(mockCreateOnboardingUseCase.execute.mock.calls.length).toBe(1);
     expect(mockCreateOnboardingUseCase.execute.mock.calls[0]).toEqual([
@@ -55,6 +56,8 @@ describe('OnboardingController', () => {
         documentNumber: '12345',
         email: 'test@user.com',
         initialAmount: 100,
+        productId: 'product-uuid',
+        createdByUserId: 'user-uuid',
       },
     ]);
     expect(result).toEqual(useCaseResult);
@@ -66,12 +69,13 @@ describe('OnboardingController', () => {
       documentNumber: '12345',
       email: 'test@user.com',
       initialAmount: 100,
+      productId: 'product-uuid',
     };
 
     const error = new Error('Database error');
     mockCreateOnboardingUseCase.execute.mockRejectedValue(error);
 
-    await expect(controller.create(requestDto)).rejects.toThrow(
+    await expect(controller.create(requestDto, 'user-uuid')).rejects.toThrow(
       'Database error',
     );
   });

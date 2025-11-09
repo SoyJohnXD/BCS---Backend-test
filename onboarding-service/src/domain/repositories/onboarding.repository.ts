@@ -21,4 +21,12 @@ export interface IOnboardingRepository {
    * @param request La entidad actualizada.
    */
   update(request: OnboardingRequest): Promise<void>;
+
+  /**
+   * Busca si existe una solicitud activa (REQUESTED) para un par usuario-producto.
+   */
+  findActiveByUserAndProduct(
+    userId: string,
+    productId: string,
+  ): Promise<OnboardingRequest | null>;
 }

@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Min,
+  IsUUID,
+} from 'class-validator';
 
 export class OnboardingRequestDto {
   @IsString()
@@ -16,4 +23,8 @@ export class OnboardingRequestDto {
   @IsNumber()
   @Min(0)
   initialAmount: number;
+
+  @IsUUID()
+  @IsNotEmpty()
+  productId: string;
 }

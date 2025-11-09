@@ -23,25 +23,36 @@ export class SeederService implements OnApplicationBootstrap {
 
     const productsToSeed: Product[] = [
       Product.create({
-        name: 'Cuenta de Ahorros',
-        description: 'Una cuenta flexible para tus ahorros diarios.',
-        tasaInteres: 1.25,
-        terminosCondiciones: 'Aplica GMF 4x1000. Cuota de manejo: $0.',
-        requisitosElegibilidad: 'Ser mayor de 18 años y tener cédula.',
+        name: 'Savings Account',
+        shortDescription: 'Flexible account for everyday savings.',
+        description:
+          'A flexible savings account with no maintenance fees and competitive rate.',
+        interestRate: 1.25,
+        termsAndConditions: 'Subject to local taxes. No maintenance fee.',
+        eligibilityRequirements: ['18+ years old', 'Valid ID'],
+        benefits: ['No maintenance fee', 'Online banking access'],
+        imageTags: ['savings', 'piggy-bank'],
       }),
       Product.create({
-        name: 'Tarjeta de Crédito Clásica',
-        description: 'Tu primera tarjeta de crédito con cupo flexible.',
-        tasaInteres: 34.5,
-        terminosCondiciones: 'Cupo sujeto a estudio de crédito.',
-        requisitosElegibilidad: 'Ingresos superiores a 1 SMMLV.',
+        name: 'Classic Credit Card',
+        shortDescription: 'Your first credit card with flexible limit.',
+        description:
+          'Credit card designed for starters with rewards and manageable limits.',
+        interestRate: 34.5,
+        termsAndConditions: 'Credit limit subject to approval.',
+        eligibilityRequirements: ['Proof of income', 'Credit check'],
+        benefits: ['Rewards program', 'Contactless payments'],
+        imageTags: ['credit-card', 'shopping'],
       }),
       Product.create({
-        name: 'Crédito de Libre Inversión',
-        description: 'Dinero para lo que necesites, con tasa fija.',
-        tasaInteres: 22.0,
-        terminosCondiciones: 'Plazo de 12 a 60 meses.',
-        requisitosElegibilidad: 'Estudio de crédito y antigüedad laboral.',
+        name: 'Personal Loan',
+        shortDescription: 'Money for anything you need.',
+        description: 'Fixed-rate personal loan from 12 to 60 months.',
+        interestRate: 22.0,
+        termsAndConditions: 'Subject to credit study.',
+        eligibilityRequirements: ['Employment history', 'Credit check'],
+        benefits: ['Fixed rate', 'Flexible terms'],
+        imageTags: ['loan', 'cash'],
       }),
     ];
 

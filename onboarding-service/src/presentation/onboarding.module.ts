@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OnboardingController } from './controllers/onboarding.controller';
@@ -12,6 +13,10 @@ import { InternalController } from './controllers/internal.controller';
 import { UpdateOnboardingStatusUseCase } from '@/application/use-cases/update-onboarding-status.use-case';
 import { INotificationPort } from '@/application/ports/notification.port';
 import { LogNotificationAdapter } from '@/infrastructure/services/log-notification.adapter';
+import { OnboardingInProgressExceptionFilter } from '@/presentation/filters/onboarding-in-progress-exception.filter';
+import { OnboardingNotFoundExceptionsFilter } from '@/presentation/filters/not-found-exceptions.filter';
+import { IProductLookupPort } from '@/application/ports/product-lookup.port';
+import { HttpProductLookupAdapter } from '@/infrastructure/services/http-product-lookup.adapter';
 
 @Module({
   imports: [
@@ -33,6 +38,10 @@ import { LogNotificationAdapter } from '@/infrastructure/services/log-notificati
       useClass: SqlOnboardingRepository,
     },
     {
+      provide: IProductLookupPort,
+      useClass: HttpProductLookupAdapter,
+    },
+    {
       provide: IValidationApiPort,
       useClass: HttpValidationApiAdapter,
     },
@@ -40,6 +49,14 @@ import { LogNotificationAdapter } from '@/infrastructure/services/log-notificati
     {
       provide: INotificationPort,
       useClass: LogNotificationAdapter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: OnboardingInProgressExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: OnboardingNotFoundExceptionsFilter,
     },
   ],
 })

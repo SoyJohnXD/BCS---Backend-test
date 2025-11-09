@@ -1,8 +1,11 @@
 export interface ProductDto {
   id: string;
   name: string;
+  shortDescription: string;
   description: string;
-  tasaInteres: number;
-  terminosCondiciones: string;
-  requisitosElegibilidad: string;
+  interestRate: number;
+  termsAndConditions: string;
+  eligibilityRequirements: string[];
+  benefits: string[];
+  imageTags: string[];
 }
