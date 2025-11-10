@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OnboardingModule } from '@/presentation/onboarding.module';
+import { HealthController } from '@/presentation/controllers/health.controller';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
@@ -31,7 +32,7 @@ import { HttpModule } from '@nestjs/axios';
 
     OnboardingModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

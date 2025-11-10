@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ProductModule } from '@/presentation/product.module';
+import { HealthController } from '@/presentation/controllers/health.controller';
 import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
@@ -42,7 +43,7 @@ import { redisStore } from 'cache-manager-redis-store';
 
     ProductModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

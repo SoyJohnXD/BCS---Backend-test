@@ -1,0 +1,245 @@
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    image: bcs/api-gateway:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:3000
+      PRODUCT_SERVICE_URL: http://product-service:3000
+      ONBOARDING_SERVICE_URL: http://onboarding-service:3000
+    depends_on:
+      - auth-service
+      - product-service
+      - onboarding-service
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:3000/health || wget -qO- http://localhost:3000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    image: bcs/auth-service:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_HOST: db-auth
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${AUTH_DATABASE_USER}
+      DATABASE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      DATABASE_NAME: ${AUTH_DATABASE_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - db-auth
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:3000/health || wget -qO- http://localhost:3000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    image: bcs/product-service:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_HOST: db-products
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${PRODUCT_DATABASE_USER}
+      DATABASE_PASSWORD: ${PRODUCT_DATABASE_PASSWORD}
+      DATABASE_NAME: ${PRODUCT_DATABASE_NAME}
+      REDIS_HOST: redis-cache
+      REDIS_PORT: 6379
+    depends_on:
+      - db-products
+      - redis-cache
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:3000/health || wget -qO- http://localhost:3000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+
+  onboarding-service:
+    build:
+      context: ./onboarding-service
+      dockerfile: Dockerfile
+    image: bcs/onboarding-service:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_HOST: db-onboarding
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${ONBOARDING_DATABASE_USER}
+      DATABASE_PASSWORD: ${ONBOARDING_DATABASE_PASSWORD}
+      DATABASE_NAME: ${ONBOARDING_DATABASE_NAME}
+      VALIDATION_SERVICE_URL: http://validation-service:3000
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    depends_on:
+      - db-onboarding
+      - validation-service
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:3000/health || wget -qO- http://localhost:3000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+
+  validation-service:
+    build:
+      context: ./validation-service
+      dockerfile: Dockerfile
+    image: bcs/validation-service:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      ONBOARDING_SERVICE_URL: http://onboarding-service:3000
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:3000/health || wget -qO- http://localhost:3000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_GATEWAY_URL: http://localhost:3000
+    image: bcs/frontend:prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_GATEWAY_URL: http://api-gateway:3000
+      NEXT_PUBLIC_API_GATEWAY_URL: http://localhost:3000
+    depends_on:
+      - api-gateway
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    networks:
+      - internal
+
+  db-auth:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${AUTH_DATABASE_USER}
+      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      POSTGRES_DB: ${AUTH_DATABASE_NAME}
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DATABASE_USER} -d postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+
+  db-products:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${PRODUCT_DATABASE_USER}
+      POSTGRES_PASSWORD: ${PRODUCT_DATABASE_PASSWORD}
+      POSTGRES_DB: ${PRODUCT_DATABASE_NAME}
+    volumes:
+      - products-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PRODUCT_DATABASE_USER} -d postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+
+  db-onboarding:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${ONBOARDING_DATABASE_USER}
+      POSTGRES_PASSWORD: ${ONBOARDING_DATABASE_PASSWORD}
+      POSTGRES_DB: ${ONBOARDING_DATABASE_NAME}
+    volumes:
+      - onboarding-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${ONBOARDING_DATABASE_USER} -d postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+
+  redis-cache:
+    image: redis:6-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  auth-data:
+  products-data:
+  onboarding-data:
