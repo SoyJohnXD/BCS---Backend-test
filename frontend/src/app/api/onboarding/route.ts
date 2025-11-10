@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 import { serverApi } from "@/lib/api-client";
 
 export async function POST(request: NextRequest) {
-  const cookiesStore = cookies();
-  const token = cookiesStore.get("session")?.value;
+  const cookiesStore = await cookies();
+  const token = cookiesStore.get("authToken")?.value;
 
   if (!token) {
     return NextResponse.json({ message: "No autorizado" }, { status: 401 });

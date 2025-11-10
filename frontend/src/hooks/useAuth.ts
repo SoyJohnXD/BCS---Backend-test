@@ -1,7 +1,17 @@
-import { useAuthStore } from "@/store/auth.store";
+"use client";
+import { useEffect } from "react";
+import { useAuthStore, type AuthState } from "@/store/auth.store";
 
 export const useAuth = () => {
-  const state = useAuthStore((state) => state);
+  const status = useAuthStore((s: AuthState) => s.status);
+  const checkAuthStatus = useAuthStore((s: AuthState) => s.checkAuthStatus);
+  const fullState = useAuthStore();
 
-  return state;
+  useEffect(() => {
+    if (status === "loading") {
+      checkAuthStatus();
+    }
+  }, [status, checkAuthStatus]);
+
+  return fullState;
 };

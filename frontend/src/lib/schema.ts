@@ -19,7 +19,7 @@ export const onboardingSchema = z.object({
   email: z
     .string()
     .email({ message: "Debe ser un correo electrónico válido." }),
-  initialAmount: z.coerce
+  initialAmount: z
     .number()
     .min(0, { message: "El monto inicial no puede ser negativo." }),
   productId: z.string().uuid({ message: "Debe seleccionar un producto." }),

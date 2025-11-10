@@ -1,64 +1,81 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { serverApi } from "@/lib/api-client";
-import { ProductListDto } from "@/types/product.types";
 import { OnboardingForm } from "@/components/forms/OnboardingForm";
+import { Navbar } from "@/components/navbar/Navbar";
+import { Footer } from "@/components/footer/Footer";
+import { Container, Card } from "@/components/ui";
+import { PackageIcon } from "@/components/icons";
+import { getProducts } from "@/services/product.service";
 
-/**
- * Obtiene los productos desde el backend (servidor a servidor).
- */
-async function getProducts(): Promise<ProductListDto> {
-  try {
-    const response = await serverApi("/products", {
-      method: "GET",
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error del backend: ${response.status}`);
-    }
-
-    const data: ProductListDto = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error al obtener productos (SSR /onboarding):", error);
-    return { products: [] };
-  }
-}
-
-/**
- * Página de Onboarding de Cliente.
- *
- * Este es un Componente de Servidor (RSC) asíncrono.
- *
- * 1. Protege la ruta verificando la cookie de sesión en el servidor.
- * 2. Obtiene la lista de productos del backend (S2S).
- * 3. Renderiza el <OnboardingForm> (componente cliente) pasándole los productos.
- */
-export default async function OnboardingPage() {
-  // 1. Protección de Ruta (Servidor)
-  // Se llama a .get() directamente desde la función cookies()
-  const token = cookies().get("session")?.value;
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken")?.value;
 
   if (!token) {
     redirect("/login");
   }
 
-  // 2. Obtención de Datos (Servidor)
-  const { products } = await getProducts();
+  const data = await getProducts();
+  const products = data?.products || [];
+  const params = await searchParams;
+  const preselectedProduct = params.productId
+    ? {
+        id: params.productId as string,
+        name: params.productName as string,
+        description: params.productDescription as string,
+      }
+    : undefined;
 
-  // 3. Renderizado
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 md:p-24 bg-gray-50">
-      <div className="w-full max-w-lg p-8 bg-white rounded-lg shadow-md border border-gray-200">
-        <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">
-          Solicitud de Apertura
-        </h1>
-        <p className="text-center text-gray-600 mb-6">
-          Complete el formulario para iniciar su solicitud.
-        </p>
-        <OnboardingForm products={products} />
-      </div>
+    <main className="flex flex-col min-h-screen">
+      <Navbar />
+
+      <Container className="py-12 flex-1">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="font-brand text-3xl md:text-4xl font-semibold text-black mb-3">
+              Solicitud de Apertura
+            </h1>
+            <p className="text-black/60 text-base leading-relaxed">
+              Complete el formulario para iniciar su solicitud
+            </p>
+          </div>
+
+          {preselectedProduct && (
+            <Card variant="surface" className="p-6 mb-6 border-black/10">
+              <div className="flex items-center gap-4">
+                <div className="shrink-0 w-12 h-12 rounded-xl bg-(--primary)/10 flex items-center justify-center">
+                  <PackageIcon size={24} className="text-(--primary)" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-black/50 mb-1">
+                    Producto seleccionado
+                  </p>
+                  <p className="font-brand text-lg font-semibold text-black">
+                    {preselectedProduct.name}
+                  </p>
+                  <p className="text-sm text-black/60 mt-0.5">
+                    {preselectedProduct.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          <Card className="p-8 md:p-10">
+            <OnboardingForm
+              products={products}
+              preselectedProductId={preselectedProduct?.id}
+            />
+          </Card>
+        </div>
+      </Container>
+
+      <Footer />
     </main>
   );
 }

@@ -5,9 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { LoginSchema, loginSchema } from "@/lib/schema";
+import { LoginFormValues, loginSchema } from "@/lib/schema";
+import { Button, Input, Alert } from "@/components/ui";
 
-export const LoginForm = () => {
+interface LoginFormProps {
+  className?: string;
+}
+
+export const LoginForm = ({ className = "" }: LoginFormProps) => {
   const router = useRouter();
   const { login } = useAuth();
 
@@ -17,11 +22,11 @@ export const LoginForm = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginSchema>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginSchema) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setApiError(null);
     try {
       const res = await fetch("/api/auth/login", {
@@ -39,6 +44,7 @@ export const LoginForm = () => {
         setApiError(responseData.message || "Error al iniciar sesión");
       }
     } catch (error) {
+      console.error("Error en login:", error);
       setApiError("No se pudo conectar al servidor. Intente más tarde.");
     }
   };
@@ -46,63 +52,38 @@ export const LoginForm = () => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="max-w-md mx-auto p-8 border rounded-lg shadow-sm bg-white"
+      className={`space-y-6 ${className}`.trim()}
     >
-      <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
+      {apiError && <Alert variant="error">{apiError}</Alert>}
 
-      {/* Error general de API */}
-      {apiError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {apiError}
-        </div>
-      )}
+      <Input
+        type="email"
+        label="Email"
+        autoComplete="email"
+        aria-invalid={!!errors.email}
+        aria-describedby={errors.email ? "email-error" : undefined}
+        error={errors.email?.message}
+        {...register("email")}
+      />
 
-      {/* Campo Email */}
-      <div className="mb-4">
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          {...register("email")}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        />
-        {errors.email && (
-          <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
-        )}
-      </div>
+      <Input
+        type="password"
+        label="Contraseña"
+        autoComplete="current-password"
+        aria-invalid={!!errors.password}
+        aria-describedby={errors.password ? "password-error" : undefined}
+        error={errors.password?.message}
+        {...register("password")}
+      />
 
-      {/* Campo Contraseña */}
-      <div className="mb-6">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Contraseña
-        </label>
-        <input
-          id="password"
-          type="password"
-          {...register("password")}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        />
-        {errors.password && (
-          <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
-        )}
-      </div>
-
-      {/* Botón de Submit */}
-      <button
+      <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400"
+        isLoading={isSubmitting}
+        className="w-full justify-center text-base"
       >
-        {isSubmitting ? "Ingresando..." : "Ingresar"}
-      </button>
+        Ingresar
+      </Button>
     </form>
   );
 };

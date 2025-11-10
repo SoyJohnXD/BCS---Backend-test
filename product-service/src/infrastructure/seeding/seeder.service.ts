@@ -23,36 +23,76 @@ export class SeederService implements OnApplicationBootstrap {
 
     const productsToSeed: Product[] = [
       Product.create({
-        name: 'Savings Account',
-        shortDescription: 'Flexible account for everyday savings.',
+        name: 'Cuenta de Ahorros',
+        shortDescription: 'Cuenta flexible para tus ahorros diarios.',
         description:
-          'A flexible savings account with no maintenance fees and competitive rate.',
+          'Una cuenta de ahorros flexible, sin comisiones de mantenimiento y con una tasa competitiva.',
         interestRate: 1.25,
-        termsAndConditions: 'Subject to local taxes. No maintenance fee.',
-        eligibilityRequirements: ['18+ years old', 'Valid ID'],
-        benefits: ['No maintenance fee', 'Online banking access'],
-        imageTags: ['savings', 'piggy-bank'],
+        termsAndConditions:
+          'Sujeta a impuestos locales. Sin comisión de mantenimiento.',
+        eligibilityRequirements: ['Mayor de 18 años', 'Identificación válida'],
+        benefits: ['Sin comisión de mantenimiento', 'Acceso a banca en línea'],
+        imageTags: ['ahorros', 'alcancía'],
       }),
       Product.create({
-        name: 'Classic Credit Card',
-        shortDescription: 'Your first credit card with flexible limit.',
+        name: 'Tarjeta de Crédito Clásica',
+        shortDescription: 'Tu primera tarjeta de crédito con límite flexible.',
         description:
-          'Credit card designed for starters with rewards and manageable limits.',
+          'Tarjeta de crédito diseñada para principiantes, con recompensas y límites manejables.',
         interestRate: 34.5,
-        termsAndConditions: 'Credit limit subject to approval.',
-        eligibilityRequirements: ['Proof of income', 'Credit check'],
-        benefits: ['Rewards program', 'Contactless payments'],
-        imageTags: ['credit-card', 'shopping'],
+        termsAndConditions: 'El límite de crédito está sujeto a aprobación.',
+        eligibilityRequirements: [
+          'Comprobante de ingresos',
+          'Verificación de crédito',
+        ],
+        benefits: ['Programa de recompensas', 'Pagos sin contacto'],
+        imageTags: ['tarjeta-de-credito', 'compras'],
       }),
       Product.create({
-        name: 'Personal Loan',
-        shortDescription: 'Money for anything you need.',
-        description: 'Fixed-rate personal loan from 12 to 60 months.',
+        name: 'Préstamo Personal',
+        shortDescription: 'Dinero para lo que necesites.',
+        description: 'Préstamo personal a tasa fija de 12 a 60 meses.',
         interestRate: 22.0,
-        termsAndConditions: 'Subject to credit study.',
-        eligibilityRequirements: ['Employment history', 'Credit check'],
-        benefits: ['Fixed rate', 'Flexible terms'],
-        imageTags: ['loan', 'cash'],
+        termsAndConditions: 'Sujeto a estudio de crédito.',
+        eligibilityRequirements: [
+          'Historial laboral',
+          'Verificación de crédito',
+        ],
+        benefits: ['Tasa fija', 'Plazos flexibles'],
+        imageTags: ['prestamo', 'efectivo'],
+      }),
+      Product.create({
+        name: 'Plan de Inversión',
+        shortDescription: 'Haz crecer tu dinero con opciones de bajo riesgo.',
+        description:
+          'Un plan de inversión con portafolios diversificados de bajo riesgo y aportes flexibles.',
+        interestRate: 5.8,
+        termsAndConditions:
+          'Los rendimientos pueden variar según las condiciones del mercado.',
+        eligibilityRequirements: [
+          'Identificación válida',
+          'Depósito inicial requerido',
+        ],
+        benefits: [
+          'Reinversión automática',
+          'Seguimiento del portafolio en línea',
+        ],
+        imageTags: ['inversion', 'crecimiento'],
+      }),
+      Product.create({
+        name: 'Billetera Digital',
+        shortDescription: 'Tu dinero, siempre contigo.',
+        description:
+          'Una billetera digital segura para enviar, recibir y administrar tus fondos al instante.',
+        interestRate: 0.0,
+        termsAndConditions:
+          'Requiere instalación y verificación en la aplicación.',
+        eligibilityRequirements: [
+          'Teléfono inteligente',
+          'Conexión a internet',
+        ],
+        benefits: ['Transferencias instantáneas', 'Pagos con código QR'],
+        imageTags: ['billetera-digital', 'pago-movil'],
       }),
     ];
 
