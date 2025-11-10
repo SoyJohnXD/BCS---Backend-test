@@ -4,12 +4,16 @@ import { cn } from "@/lib/utils";
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   label?: string;
+  name?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, label, id, name, ...props }, ref) => {
+  ({ className, error, label, id, ...props }, ref) => {
     const inputId =
-      id || (name ? name : label?.toLowerCase().replace(/\s+/g, "-"));
+      id ||
+      (props.name
+        ? String(props.name)
+        : label?.toLowerCase().replace(/\s+/g, "-"));
 
     return (
       <div className="w-full">

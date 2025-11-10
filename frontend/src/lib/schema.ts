@@ -3,9 +3,11 @@ import { z } from "zod";
 export const loginSchema = z.object({
   email: z
     .string()
+    .trim()
     .email({ message: "Debe ser un correo electrónico válido." }),
   password: z
     .string()
+    .trim()
     .min(1, { message: "La contraseña no puede estar vacía." }),
 });
 

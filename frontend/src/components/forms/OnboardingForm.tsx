@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +27,7 @@ export function OnboardingForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema),
@@ -109,13 +110,19 @@ export function OnboardingForm({
         {...register("email")}
       />
 
-      <CurrencyInput
-        label="Monto Inicial de Apertura"
-        currency="USD"
-        error={errors.initialAmount?.message}
-        {...register("initialAmount", {
-          setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
-        })}
+      <Controller
+        name="initialAmount"
+        control={control}
+        render={({ field }) => (
+          <CurrencyInput
+            label="Monto Inicial de Apertura"
+            currency="USD"
+            name={field.name}
+            value={field.value}
+            onValueChange={(v) => field.onChange(v ?? 0)}
+            error={errors.initialAmount?.message}
+          />
+        )}
       />
 
       <div>

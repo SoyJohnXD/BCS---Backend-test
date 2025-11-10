@@ -3,39 +3,24 @@ import { forwardRef, InputHTMLAttributes, useState, ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
 
 export interface CurrencyInputProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  extends Omit<
+    InputHTMLAttributes<HTMLInputElement>,
+    "type" | "onChange" | "value"
+  > {
   error?: string;
   label?: string;
   currency?: string;
   name?: string;
+  value?: number | null;
+  onValueChange?: (value: number | null) => void;
 }
 
-const formatNumber = (value: string): string => {
-  if (!value) return "";
-
-  // Remover todo excepto números y punto decimal
-  const cleaned = value.replace(/[^\d.]/g, "");
-
-  // Asegurar solo un punto decimal
-  const parts = cleaned.split(".");
-  const integerPart = parts[0] || "0";
-  const decimalPart = parts[1];
-
-  // Formatear la parte entera con puntos como separadores de miles
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  // Retornar con o sin decimales
-  return decimalPart !== undefined
-    ? `${formattedInteger}.${decimalPart.slice(0, 2)}`
-    : formattedInteger;
-};
-
-const cleanNumber = (value: string): string => {
-  if (!value) return "";
-  // Remover todos los puntos de separación de miles
-  const cleaned = value.replace(/\./g, "");
-  // Reemplazar coma por punto si existe (formato decimal)
-  return cleaned.replace(/,/g, ".");
+const formatNumber = (raw: number | null): string => {
+  if (raw === null || Number.isNaN(raw)) return "";
+  const [intPart, decPart] = raw.toFixed(2).split(".");
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  // Si los decimales son 00 los ocultamos para una vista más limpia
+  return decPart === "00" ? formattedInt : `${formattedInt}.${decPart}`;
 };
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
@@ -46,63 +31,80 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       label,
       id,
       currency = "USD",
-      onChange,
-      defaultValue,
       name,
+      value = null,
+      onValueChange,
       ...props
     },
     ref
   ) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
-    const [displayValue, setDisplayValue] = useState(
-      defaultValue ? formatNumber(String(defaultValue)) : ""
+
+    // Estado crudo mientras el usuario edita (sin separadores de miles)
+    const [rawValue, setRawValue] = useState<string>(
+      value !== null ? value.toString() : ""
     );
+    const [isFocused, setIsFocused] = useState(false);
+
+    // Nota: no sincronizamos rawValue en efectos para evitar warning de lint.
+    // Al enfocar recalculamos desde value actual.
+
+    const sanitize = (input: string): string => {
+      if (input === "") return "";
+      // Permitimos dígitos y un solo punto decimal
+      let cleaned = input.replace(/[^\d.,]/g, "").replace(/,/g, ".");
+      const parts = cleaned.split(".");
+      if (parts.length > 2) {
+        // Más de un separador decimal: ignoramos el último carácter
+        cleaned = parts.slice(0, 2).join(".");
+      }
+      // Limitar a dos decimales si existen
+      if (parts.length === 2 && parts[1].length > 2) {
+        cleaned = `${parts[0]}.${parts[1].slice(0, 2)}`;
+      }
+      return cleaned;
+    };
+
+    const maybeParseNumber = (input: string): number | null => {
+      if (!input) return null;
+      if (input.endsWith(".")) return null; // parcial: usuario aún escribiendo decimales
+      const num = Number(input);
+      return Number.isNaN(num) ? null : num;
+    };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value;
+      const nextRaw = sanitize(e.target.value);
+      setRawValue(nextRaw);
+      const parsed = maybeParseNumber(nextRaw);
+      if (parsed !== null) onValueChange?.(parsed);
+      else if (nextRaw === "") onValueChange?.(null); // vacío resetea valor
+    };
 
-      // Permitir vacío
-      if (inputValue === "") {
-        setDisplayValue("");
-        if (onChange) {
-          const syntheticEvent = {
-            ...e,
-            target: {
-              ...e.target,
-              name: name || e.target.name,
-              value: "",
-            },
-          } as ChangeEvent<HTMLInputElement>;
-          onChange(syntheticEvent);
-        }
-        return;
-      }
-
-      // Solo permitir números y punto decimal
-      const cleanInput = inputValue.replace(/[^\d.]/g, "");
-
-      // Validar formato (máximo un punto decimal y 2 decimales)
-      const parts = cleanInput.split(".");
-      if (parts.length <= 2) {
-        const formatted = formatNumber(cleanInput);
-        setDisplayValue(formatted);
-
-        // Pasar el valor limpio (sin separadores de miles) a react-hook-form
-        const cleanValue = cleanNumber(cleanInput);
-
-        if (onChange) {
-          const syntheticEvent = {
-            ...e,
-            target: {
-              ...e.target,
-              name: name || e.target.name,
-              value: cleanValue,
-            },
-          } as ChangeEvent<HTMLInputElement>;
-          onChange(syntheticEvent);
-        }
+    const handleBlur = () => {
+      setIsFocused(false);
+      // Al perder foco formateamos si hay un número válido (parcial '1234.' -> 1234)
+      let current = rawValue;
+      if (current.endsWith(".")) current = current.slice(0, -1);
+      const parsed = maybeParseNumber(current);
+      if (parsed !== null) {
+        onValueChange?.(parsed); // aseguramos valor final
+        setRawValue(parsed.toString()); // base para futuros focuses
       }
     };
+
+    const handleFocus = () => {
+      setIsFocused(true);
+      // Al enfocar mostramos versión sin separadores (rawValue ya lo es). Si venimos de formato, quitar puntos.
+      if (value !== null) {
+        setRawValue(value.toString());
+      }
+    };
+
+    const display = isFocused
+      ? rawValue
+      : value !== null
+      ? formatNumber(value)
+      : "";
 
     return (
       <div className="w-full">
@@ -124,8 +126,10 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
             name={name}
             type="text"
             inputMode="decimal"
-            value={displayValue}
+            value={display}
             onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
             className={cn(
               "w-full pl-10 pr-4 py-3 rounded-xl border transition-colors",
               "focus:outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)",

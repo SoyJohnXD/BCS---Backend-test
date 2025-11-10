@@ -32,17 +32,20 @@ export const LoginForm = ({ className = "" }: LoginFormProps) => {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          email: data.email.trim(),
+          password: data.password.trim(),
+        }),
       });
 
       const responseData = await res.json();
 
-      if (res.ok) {
-        login(responseData.user);
-        router.push("/onboarding");
-      } else {
+      if (!res.ok) {
         setApiError(responseData.message || "Error al iniciar sesión");
+        return;
       }
+      login(responseData.user);
+      router.push("/onboarding");
     } catch (error) {
       console.error("Error en login:", error);
       setApiError("No se pudo conectar al servidor. Intente más tarde.");
