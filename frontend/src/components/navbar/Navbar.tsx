@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { BANK_NAME } from "@/lib/brand";
-import { Button, LinkButton } from "@/components/ui";
+import { LinkButton } from "@/components/ui";
+import { LogoutButton } from "./LogoutButton";
 
 export async function Navbar() {
   const cookieStore = await cookies();
@@ -26,11 +27,7 @@ export async function Navbar() {
 
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
-            <form action="/api/auth/logout" method="POST">
-              <Button type="submit" variant="outline" size="sm">
-                Cerrar sesión
-              </Button>
-            </form>
+            <LogoutButton />
           ) : (
             <LinkButton href="/login" variant="primary" size="sm">
               Iniciar Sesión
